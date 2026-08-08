@@ -1,0 +1,257 @@
+@import url('https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Jost:wght@300;400;500&display=swap');
+
+*, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+html, body {
+    width: 100%;
+    height: 100%;
+    background: #05030a;
+    overflow: hidden;
+    font-family: 'Jost', sans-serif;
+    -webkit-tap-highlight-color: transparent;
+}
+
+canvas#scene {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 1;
+    touch-action: none;
+}
+
+canvas#confetti {
+    position: fixed;
+    inset: 0;
+    width: 100%;
+    height: 100%;
+    display: block;
+    z-index: 40;
+    pointer-events: none;
+}
+
+/* ═══════════════════════════════════════
+   Intro card
+   ═══════════════════════════════════════ */
+.intro {
+    position: fixed;
+    inset: 0;
+    z-index: 50;
+    display: grid;
+    place-items: center;
+    padding: 24px;
+    background:
+        radial-gradient(ellipse 90% 60% at 50% 40%, #2a1440 0%, transparent 65%),
+        linear-gradient(160deg, #150b22 0%, #0a0612 55%, #05030a 100%);
+    transition: opacity .7s ease, visibility .7s;
+}
+
+.intro.hidden {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.intro-card {
+    width: min(92vw, 430px);
+    padding: 34px 28px 30px;
+    border-radius: 26px;
+    text-align: center;
+    background: linear-gradient(158deg, rgba(58, 36, 82, 0.72), rgba(20, 12, 32, 0.88));
+    backdrop-filter: blur(14px);
+    -webkit-backdrop-filter: blur(14px);
+    border: 1px solid rgba(190, 150, 235, 0.28);
+    box-shadow:
+        0 30px 70px rgba(0, 0, 0, 0.6),
+        inset 0 1px 0 rgba(255, 255, 255, 0.09);
+    animation: cardRise .9s cubic-bezier(.22,1,.36,1) both;
+}
+
+@keyframes cardRise {
+    from { opacity: 0; transform: translateY(26px) scale(.96); }
+    to   { opacity: 1; transform: none; }
+}
+
+.intro-title {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-size: clamp(2rem, 8.5vw, 2.9rem);
+    letter-spacing: 0.01em;
+    color: #fdf7ff;
+    text-shadow: 0 0 26px rgba(226, 160, 255, 0.45);
+}
+
+.intro-art {
+    width: 156px;
+    height: 156px;
+    margin: 18px auto 14px;
+    display: grid;
+    place-items: center;
+}
+
+.intro-art img {
+    max-width: 100%;
+    max-height: 100%;
+    object-fit: contain;
+    border-radius: 14px;
+    filter: drop-shadow(0 8px 22px rgba(0,0,0,.5));
+    animation: artFloat 4.4s ease-in-out infinite;
+}
+
+@keyframes artFloat {
+    0%, 100% { transform: translateY(0); }
+    50%      { transform: translateY(-9px); }
+}
+
+.intro-sub {
+    font-size: .74rem;
+    letter-spacing: .32em;
+    text-transform: uppercase;
+    color: rgba(238, 220, 255, 0.62);
+    margin-bottom: 22px;
+}
+
+.intro-btn {
+    font-family: 'Jost', sans-serif;
+    font-size: .78rem;
+    letter-spacing: .26em;
+    text-transform: uppercase;
+    color: #f6ecff;
+    padding: 12px 34px;
+    border-radius: 999px;
+    cursor: pointer;
+    background: linear-gradient(140deg, rgba(126, 74, 178, 0.85), rgba(72, 40, 112, 0.85));
+    border: 1px solid rgba(214, 172, 255, 0.5);
+    box-shadow: 0 8px 26px rgba(120, 60, 190, 0.35), inset 0 1px 0 rgba(255,255,255,.16);
+    transition: transform .22s cubic-bezier(.34,1.56,.64,1), box-shadow .22s ease;
+}
+
+.intro-btn:hover,
+.intro-btn:focus-visible {
+    transform: translateY(-2px) scale(1.04);
+    box-shadow: 0 12px 34px rgba(150, 80, 230, 0.5), inset 0 1px 0 rgba(255,255,255,.22);
+    outline: none;
+}
+
+.intro-btn:active { transform: scale(.97); }
+
+/* ═══════════════════════════════════════
+   HUD
+   ═══════════════════════════════════════ */
+.hud {
+    position: fixed;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 1s ease .4s;
+}
+
+.hud.visible { opacity: 1; }
+
+.hud-top {
+    position: absolute;
+    top: max(18px, env(safe-area-inset-top));
+    left: 0; right: 0;
+    text-align: center;
+}
+
+.hud-brand {
+    font-family: 'Playfair Display', serif;
+    font-size: .82rem;
+    letter-spacing: .3em;
+    text-transform: uppercase;
+    color: rgba(255, 225, 250, 0.5);
+    text-shadow: 0 0 16px rgba(255, 140, 220, 0.4);
+}
+
+.hud-bottom {
+    position: absolute;
+    bottom: max(26px, env(safe-area-inset-bottom));
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    gap: 14px;
+    pointer-events: auto;
+}
+
+.hud-btn {
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    font-size: 1.05rem;
+    color: #ffe7fb;
+    cursor: pointer;
+    border-radius: 50%;
+    background: rgba(38, 20, 56, 0.55);
+    backdrop-filter: blur(10px);
+    -webkit-backdrop-filter: blur(10px);
+    border: 1px solid rgba(226, 160, 255, 0.32);
+    box-shadow: 0 6px 20px rgba(0,0,0,.45);
+    transition: transform .2s cubic-bezier(.34,1.56,.64,1), background .2s, border-color .2s;
+}
+
+.hud-btn:hover { transform: translateY(-3px); background: rgba(66, 34, 96, 0.7); }
+.hud-btn:active { transform: scale(.92); }
+.hud-btn.off { opacity: .42; border-color: rgba(226,160,255,.14); }
+
+.hud-hint {
+    position: absolute;
+    bottom: max(84px, calc(env(safe-area-inset-bottom) + 58px));
+    left: 0; right: 0;
+    text-align: center;
+    font-size: .64rem;
+    letter-spacing: .16em;
+    text-transform: uppercase;
+    color: rgba(255, 220, 250, 0.34);
+    transition: opacity .6s ease;
+}
+
+.hud-hint.gone { opacity: 0; }
+
+/* ═══════════════════════════════════════
+   Lightbox
+   ═══════════════════════════════════════ */
+.lightbox {
+    position: fixed;
+    inset: 0;
+    z-index: 60;
+    display: grid;
+    place-items: center;
+    padding: 28px;
+    background: rgba(6, 3, 12, 0.82);
+    backdrop-filter: blur(8px);
+    -webkit-backdrop-filter: blur(8px);
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .35s ease, visibility .35s;
+    cursor: pointer;
+}
+
+.lightbox.open { opacity: 1; visibility: visible; }
+
+.lightbox-inner {
+    text-align: center;
+    transform: scale(.9);
+    transition: transform .35s cubic-bezier(.22,1,.36,1);
+}
+
+.lightbox.open .lightbox-inner { transform: scale(1); }
+
+.lightbox img {
+    max-width: min(86vw, 460px);
+    max-height: 64vh;
+    border-radius: 18px;
+    border: 1px solid rgba(226, 160, 255, 0.4);
+    box-shadow: 0 26px 70px rgba(0,0,0,.7), 0 0 44px rgba(226, 120, 220, 0.22);
+}
+
+.lightbox p {
+    margin-top: 16px;
+    font-size: .8rem;
+    letter-spacing: .22em;
+    text-transform: uppercase;
+    color: rgba(255, 228, 250, 0.75);
+}

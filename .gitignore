@@ -1,0 +1,10 @@
+# Design references only — large, not loaded by the site, not needed to run it
+reference/
+ref.flower.mp4
+
+# Old drafts kept locally for history; still reference an earlier (wrong) name
+archive/
+
+# OS / editor cruft
+.DS_Store
+Thumbs.db

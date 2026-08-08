@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#ffe8ef">
+  <title>Flowers For You</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Quicksand:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- ══════ drifting background blooms (pure CSS) ══════ -->
+  <div class="bg-orbs" aria-hidden="true">
+    <span class="orb orb-1"></span>
+    <span class="orb orb-2"></span>
+    <span class="orb orb-3"></span>
+  </div>
+
+  <!-- ══════ centre plate — the canvas paints on top of this ══════ -->
+  <main class="plate">
+    <p class="plate-kicker">a little garden</p>
+    <h1 class="plate-title" id="plateTitle">Flowers For You</h1>
+    <p class="plate-sub" id="plateSub">Happy Birthday, my love</p>
+  </main>
+
+  <!-- ══════ the garden ══════ -->
+  <canvas id="garden"></canvas>
+
+  <!-- ══════ hint (fades on first touch) ══════ -->
+  <p class="hint" id="hint">Touch and drag to grow flowers for her 🌸</p>
+
+  <!-- ══════ HUD — symmetric about the centre axis ══════ -->
+  <nav class="hud" id="hud" aria-label="Flower garden controls">
+    <button class="hud-btn" id="btnHeart" type="button" aria-label="Draw a heart out of flowers"
+      title="Draw a heart">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M12 20.5S3.8 15.2 3.8 9.6A4.6 4.6 0 0 1 12 6.9a4.6 4.6 0 0 1 8.2 2.7c0 5.6-8.2 10.9-8.2 10.9Z" />
+      </svg>
+    </button>
+    <button class="hud-btn" id="btnBouquet" type="button" aria-label="Scatter a bouquet of flowers"
+      title="Bouquet">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <circle cx="12" cy="12" r="2.5" />
+        <ellipse cx="12" cy="6.6" rx="2.5" ry="3.6" />
+        <ellipse cx="12" cy="17.4" rx="2.5" ry="3.6" />
+        <ellipse cx="6.6" cy="12" rx="3.6" ry="2.5" />
+        <ellipse cx="17.4" cy="12" rx="3.6" ry="2.5" />
+      </svg>
+    </button>
+    <button class="hud-btn" id="btnClear" type="button" aria-label="Let the flowers fall away"
+      title="Let them fall">
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M5 7.5h14M9.5 7.5V5.6a1.6 1.6 0 0 1 1.6-1.6h1.8a1.6 1.6 0 0 1 1.6 1.6v1.9" />
+        <path d="M6.8 7.5 7.7 19a1.6 1.6 0 0 0 1.6 1.5h5.4a1.6 1.6 0 0 0 1.6-1.5l.9-11.5" />
+      </svg>
+    </button>
+  </nav>
+
+  <script src="main.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,1032 @@
+/* ═══════════════════════════════════════════════════════
+   🎁 Gift Box Unwrap — Lock Screen
+   Soft-minimal / cute. Rounded sans only (Quicksand), pastel
+   mesh background, frosted card, 3D-ish gift box that unwraps.
+   ═══════════════════════════════════════════════════════ */
+
+:root {
+    --g-pink:      #ff8fbb;
+    --g-pink-soft: #ffb0ce;
+    --g-lav:       #b79bff;
+    --g-lav-soft:  #d9c4ff;
+    --g-cream:     #fff8fb;
+    --g-ink:       #6b3a52;
+    --g-ink-soft:  #a87b93;
+    --g-ring:      rgba(255, 143, 187, 0.5);
+}
+
+/* Body is frozen while the gift is still wrapped */
+body.is-locked {
+    overflow: hidden;
+    height: 100vh;
+}
+
+/* ───────────────────────────────
+   Stage
+   ─────────────────────────────── */
+.lock-screen {
+    position: fixed;
+    inset: 0;
+    z-index: 100000;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(16px, 3vh, 40px) clamp(16px, 4vw, 40px);
+    background: linear-gradient(165deg, #fff7fa 0%, #fdf1f8 38%, #f5f0ff 72%, #eef6ff 100%);
+    overflow: hidden;
+    font-family: 'Quicksand', sans-serif;
+    opacity: 1;
+    transition: opacity 0.85s ease;
+}
+
+.lock-screen.is-hidden { opacity: 0; pointer-events: none; }
+.lock-screen.is-removed { display: none; }
+
+.lock-stage {
+    position: relative;
+    z-index: 6;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: clamp(10px, 2vh, 22px);
+    width: 100%;
+    max-width: 460px;
+}
+
+/* ───────────────────────────────
+   Pastel mesh blobs
+   ─────────────────────────────── */
+.lock-bg {
+    position: absolute;
+    inset: -25%;
+    z-index: 1;
+    pointer-events: none;
+    filter: blur(64px);
+    opacity: 0.8;
+}
+
+.lock-bg span {
+    position: absolute;
+    border-radius: 50%;
+    animation: blobDrift 20s ease-in-out infinite alternate;
+}
+
+.lock-bg .b1 {
+    width: 44vw; height: 44vw; top: 2%; left: 2%;
+    background: radial-gradient(circle, rgba(255, 158, 199, 0.55), transparent 70%);
+    animation-duration: 17s;
+}
+.lock-bg .b2 {
+    width: 40vw; height: 40vw; top: 38%; right: -4%;
+    background: radial-gradient(circle, rgba(183, 155, 255, 0.5), transparent 70%);
+    animation-duration: 23s; animation-delay: -5s;
+}
+.lock-bg .b3 {
+    width: 38vw; height: 38vw; bottom: -4%; left: 26%;
+    background: radial-gradient(circle, rgba(255, 213, 168, 0.45), transparent 70%);
+    animation-duration: 26s; animation-delay: -11s;
+}
+.lock-bg .b4 {
+    width: 30vw; height: 30vw; top: 6%; right: 22%;
+    background: radial-gradient(circle, rgba(157, 214, 255, 0.42), transparent 70%);
+    animation-duration: 20s; animation-delay: -14s;
+}
+
+@keyframes blobDrift {
+    0%   { transform: translate3d(0, 0, 0) scale(1); }
+    50%  { transform: translate3d(4vw, -3vh, 0) scale(1.15); }
+    100% { transform: translate3d(-3vw, 4vh, 0) scale(0.92); }
+}
+
+/* Floating bubbles + hearts */
+#lock-bokeh {
+    position: absolute;
+    inset: 0;
+    z-index: 2;
+    pointer-events: none;
+}
+
+/* Fine grain for a soft, premium finish */
+.lock-grain {
+    position: absolute;
+    inset: 0;
+    z-index: 3;
+    pointer-events: none;
+    opacity: 0.35;
+    mix-blend-mode: soft-light;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='140' height='140'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='3'/%3E%3C/filter%3E%3Crect width='140' height='140' filter='url(%23n)' opacity='.45'/%3E%3C/svg%3E");
+}
+
+/* Light rays that flare when the box opens */
+.lock-rays {
+    position: absolute;
+    top: 42%;
+    left: 50%;
+    width: 190vmax;
+    height: 190vmax;
+    margin: -95vmax 0 0 -95vmax;
+    z-index: 4;
+    pointer-events: none;
+    opacity: 0;
+    background: repeating-conic-gradient(
+        from 0deg at 50% 50%,
+        rgba(255, 255, 255, 0.55) 0deg 3deg,
+        transparent 3deg 13deg
+    );
+    mask-image: radial-gradient(circle, #000 0%, transparent 52%);
+    -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 52%);
+    animation: raysSpin 34s linear infinite;
+}
+
+@keyframes raysSpin { to { transform: rotate(360deg); } }
+
+.lock-flash {
+    position: absolute;
+    inset: 0;
+    z-index: 7;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(circle at 50% 42%, #ffffff 0%, rgba(255, 240, 248, 0.9) 38%, transparent 70%);
+}
+
+/* ═══════════════════════════════
+   🎁 The gift box
+   ═══════════════════════════════ */
+.gift {
+    position: relative;
+    width: 200px;
+    height: 200px;
+    flex: none;
+    animation: giftFloat 3.4s ease-in-out infinite alternate;
+    transform-origin: 50% 100%;
+}
+
+@keyframes giftFloat {
+    0%   { transform: translateY(0) rotate(-1.5deg); }
+    100% { transform: translateY(-14px) rotate(1.5deg); }
+}
+
+/* Soft contact shadow */
+.gift-shadow {
+    position: absolute;
+    left: 50%;
+    bottom: 2px;
+    width: 132px;
+    height: 18px;
+    margin-left: -66px;
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(190, 90, 135, 0.28), transparent 72%);
+    animation: shadowPulse 3.4s ease-in-out infinite alternate;
+}
+
+@keyframes shadowPulse {
+    0%   { transform: scale(1); opacity: 0.85; }
+    100% { transform: scale(0.82); opacity: 0.5; }
+}
+
+/* Box body */
+.gift-body {
+    position: absolute;
+    left: 50%;
+    bottom: 16px;
+    width: 152px;
+    height: 106px;
+    margin-left: -76px;
+    border-radius: 14px 14px 18px 18px;
+    background: linear-gradient(158deg, #ffa4c8 0%, #fb7cad 58%, #f2649c 100%);
+    box-shadow:
+        0 18px 36px rgba(220, 90, 140, 0.34),
+        inset 0 -14px 24px rgba(200, 60, 112, 0.3),
+        inset 0 3px 0 rgba(255, 255, 255, 0.45);
+    overflow: hidden;
+    z-index: 2;
+}
+
+/* The inside of the box — revealed once the lid lifts away, so the
+   body reads as an OPEN box rather than a closed rectangle. */
+.gift-inside {
+    position: absolute;
+    left: 4px;
+    right: 4px;
+    top: 0;
+    height: 30px;
+    border-radius: 10px 10px 45% 45%;
+    background: linear-gradient(180deg, #9c2a5c 0%, #c44a80 55%, rgba(196, 74, 128, 0) 100%);
+    opacity: 0;
+    z-index: 3;
+    transition: opacity 0.35s ease;
+}
+
+.lock-screen.is-unlocked .gift-inside { opacity: 1; }
+
+/* Vertical ribbon down the body */
+.gift-ribbon-v {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    margin-left: -15px;
+    background: linear-gradient(90deg,
+        rgba(255, 255, 255, 0.72) 0%,
+        rgba(255, 255, 255, 0.98) 40%,
+        rgba(255, 255, 255, 0.98) 60%,
+        rgba(255, 255, 255, 0.72) 100%);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+}
+
+/* Gentle sheen sweeping across the box */
+.gift-shine {
+    position: absolute;
+    top: -40%;
+    left: -70%;
+    width: 45%;
+    height: 200%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+    transform: skewX(-18deg);
+    animation: giftShine 4.5s ease-in-out infinite;
+}
+
+@keyframes giftShine {
+    0%, 55% { left: -70%; }
+    100%    { left: 160%; }
+}
+
+/* Lid */
+.gift-lid {
+    position: absolute;
+    left: 50%;
+    top: 62px;
+    width: 178px;
+    height: 44px;
+    margin-left: -89px;
+    border-radius: 12px;
+    background: linear-gradient(158deg, #ffc0dc 0%, #ff9ac2 68%, #fb84b2 100%);
+    box-shadow:
+        0 12px 24px rgba(220, 90, 140, 0.32),
+        inset 0 3px 0 rgba(255, 255, 255, 0.7);
+    z-index: 4;
+    /* The open sequence is driven by the lidOpen/bowOpen keyframe
+       animations further down, not by transitioning this rest state, so
+       there's no `transition` here to fight with them. */
+}
+
+.gift-ribbon-h {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: 30px;
+    margin-left: -15px;
+    background: linear-gradient(90deg,
+        rgba(255, 255, 255, 0.75) 0%,
+        rgba(255, 255, 255, 1) 40%,
+        rgba(255, 255, 255, 1) 60%,
+        rgba(255, 255, 255, 0.75) 100%);
+}
+
+/* Bow — drawn as SVG so the loops read crisply at any size */
+.gift-bow {
+    position: absolute;
+    left: 50%;
+    top: -42px;
+    width: 140px;
+    height: 78px;
+    margin-left: -70px;
+    transform-origin: 50% 80%;
+}
+
+.bow-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 4px 8px rgba(214, 78, 128, 0.35));
+}
+
+/* Light waiting inside the box */
+.gift-glow {
+    position: absolute;
+    left: 50%;
+    top: 30px;
+    width: 150px;
+    height: 150px;
+    margin-left: -75px;
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffffff 0%, #fff6d4 26%, rgba(255, 190, 220, 0.75) 52%, transparent 72%);
+    opacity: 0;
+    transform: scale(0.2);
+    z-index: 6;
+    pointer-events: none;
+    filter: blur(2px);
+}
+
+/* Expanding ring when the box pops */
+.gift-burst {
+    position: absolute;
+    left: 50%;
+    top: 96px;
+    width: 90px;
+    height: 90px;
+    margin: -45px 0 0 -45px;
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.9);
+    opacity: 0;
+    z-index: 5;
+    pointer-events: none;
+}
+
+/* ── Reactions ──
+   These live on .gift-inner, not .gift. Sharing one element with the
+   idle float would make the float restart from 0% every keypress. */
+.gift-inner {
+    position: absolute;
+    inset: 0;
+    transform-origin: 50% 100%;
+}
+
+.gift.is-pop .gift-inner { animation: giftPop 0.36s cubic-bezier(0.34, 1.6, 0.5, 1); }
+
+@keyframes giftPop {
+    0%   { transform: scale(1, 1) translateY(0); }
+    40%  { transform: scale(1.09, 0.92) translateY(5px); }
+    70%  { transform: scale(0.96, 1.06) translateY(-5px); }
+    100% { transform: scale(1, 1) translateY(0); }
+}
+
+.gift.is-wrong .gift-inner { animation: giftShake 0.55s cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+
+@keyframes giftShake {
+    10%, 90% { transform: translateX(-7px) rotate(-3deg); }
+    20%, 80% { transform: translateX(8px) rotate(3deg); }
+    30%, 50%, 70% { transform: translateX(-12px) rotate(-5deg); }
+    40%, 60% { transform: translateX(12px) rotate(5deg); }
+}
+
+/* ── The unwrap ──
+   Previously the lid and bow just translated in a straight line to their
+   end position — readable, but flat, like the pieces were flicked off
+   rather than opened. Both now travel a short curved path (a lift-and-tilt
+   beat before they head away) so it reads as a lid swinging open under its
+   own bow, not just a piece flying off screen. */
+.lock-screen.is-unlocked .gift { animation: none; }
+
+.lock-screen.is-unlocked .gift-bow {
+    animation: bowOpen 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes bowOpen {
+    0%   { transform: translate(0, 0)        rotate(0deg)    scale(1);   opacity: 1; }
+    35%  { transform: translate(-2px, -18px) rotate(-8deg)   scale(1.06); opacity: 1; }
+    100% { transform: translate(-6px, -128px) rotate(-34deg) scale(0.68); opacity: 0; }
+}
+
+.lock-screen.is-unlocked .gift-lid {
+    animation: lidOpen 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes lidOpen {
+    0%   { transform: translate(0, 0)       rotate(0deg);   opacity: 1; }
+    30%  { transform: translate(2px, -14px) rotate(-10deg); opacity: 1; }
+    100% { transform: translate(8px, -156px) rotate(-20deg); opacity: 0; }
+}
+
+.lock-screen.is-unlocked .gift-glow {
+    animation: giftGlow 1.5s cubic-bezier(0.2, 0.8, 0.3, 1) 0.25s forwards;
+}
+
+@keyframes giftGlow {
+    0%   { opacity: 0; transform: scale(0.2); }
+    35%  { opacity: 1; transform: scale(1.5); }
+    100% { opacity: 0; transform: scale(7); }
+}
+
+.lock-screen.is-unlocked .gift-burst {
+    animation: giftBurst 1s ease-out 0.3s forwards;
+}
+
+@keyframes giftBurst {
+    0%   { opacity: 0.95; transform: scale(0.3); border-width: 4px; }
+    100% { opacity: 0; transform: scale(5.5); border-width: 1px; }
+}
+
+.lock-screen.is-unlocked .gift-body {
+    animation: giftSettle 0.9s cubic-bezier(0.34, 1.5, 0.5, 1) forwards;
+}
+
+@keyframes giftSettle {
+    0%   { transform: scale(1, 1); }
+    35%  { transform: scale(1.12, 0.9); }
+    100% { transform: scale(1, 1); }
+}
+
+/* Five small diamonds, invisible until the box opens — the light escaping
+   carries a few flecks with it instead of just a plain glow. Positions fan
+   out from the opening at slightly different radii/delays so they read as
+   scattering, not a uniform ring. */
+.gift-sparkles { position: absolute; inset: 0; z-index: 7; pointer-events: none; }
+
+.spark {
+    position: absolute;
+    left: 50%;
+    top: 40px;
+    width: 7px;
+    height: 7px;
+    margin: -3.5px 0 0 -3.5px;
+    background: linear-gradient(135deg, #fff6d4, var(--g-pink-soft));
+    transform: translate(0, 0) rotate(45deg) scale(0);
+    opacity: 0;
+    box-shadow: 0 0 6px rgba(255, 220, 160, 0.8);
+}
+
+.lock-screen.is-unlocked .spark {
+    animation: sparkRise 1.1s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+    animation-delay: var(--spark-delay, 0.3s);
+}
+
+.spark.s1 { --spark-delay: 0.30s; --sx: -58px; --sy: -92px; }
+.spark.s2 { --spark-delay: 0.38s; --sx:  46px; --sy: -108px; }
+.spark.s3 { --spark-delay: 0.34s; --sx:  -8px; --sy: -132px; }
+.spark.s4 { --spark-delay: 0.44s; --sx: -84px; --sy: -54px; }
+.spark.s5 { --spark-delay: 0.40s; --sx:  78px; --sy: -60px; }
+
+@keyframes sparkRise {
+    0%   { transform: translate(0, 0) rotate(45deg) scale(0);   opacity: 0; }
+    22%  { transform: translate(calc(var(--sx) * 0.3), calc(var(--sy) * 0.3)) rotate(45deg) scale(1); opacity: 1; }
+    100% { transform: translate(var(--sx), var(--sy)) rotate(200deg) scale(0.3); opacity: 0; }
+}
+
+/* ═══════════════════════════════
+   Frosted card
+   ═══════════════════════════════ */
+.lock-panel {
+    position: relative;
+    width: 100%;
+    padding: clamp(22px, 3.4vh, 34px) clamp(20px, 4vw, 34px) clamp(20px, 3vh, 30px);
+    text-align: center;
+    border-radius: 34px;
+    border: 1.5px solid rgba(255, 255, 255, 0.85);
+    box-shadow:
+        0 26px 60px rgba(196, 90, 140, 0.18),
+        0 2px 0 rgba(255, 255, 255, 0.9) inset;
+    /* Scopes the ::before's negative z-index to this panel, so it can't
+       drop below unrelated siblings elsewhere on the page. */
+    isolation: isolate;
+}
+
+/* The frosted glass lives on its own layer behind the content instead of
+   directly on .lock-panel. WebKit re-blends anything painted with
+   background-clip: text against whatever is live behind a backdrop-filter
+   ancestor — with the bokeh canvas animating underneath, that made
+   .lock-title (and .lock-msg.hint) visibly flicker every frame despite
+   nothing in their own DOM changing. The title is a sibling of this
+   pseudo-element, not a descendant of the blurring box, so it no longer
+   gets pulled into that re-blend. */
+.lock-panel::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    z-index: -1;
+    border-radius: inherit;
+    background: rgba(255, 255, 255, 0.66);
+    backdrop-filter: blur(28px) saturate(150%);
+    -webkit-backdrop-filter: blur(28px) saturate(150%);
+}
+
+/* The entrance runs exactly once — JS drops this class when it finishes.
+   If it stayed on the element, removing .is-wrong after a failed attempt
+   would restart it and the card would blink out on every wrong code. */
+.lock-panel.is-entering {
+    animation: panelIn 0.9s cubic-bezier(0.22, 1.3, 0.36, 1) 0.15s both;
+}
+
+@keyframes panelIn {
+    0%   { opacity: 0; transform: translateY(28px) scale(0.96); }
+    100% { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+.lock-panel.is-wrong { animation: panelShake 0.5s cubic-bezier(0.36, 0.07, 0.19, 0.97); }
+
+@keyframes panelShake {
+    10%, 90% { transform: translateX(-6px); }
+    20%, 80% { transform: translateX(8px); }
+    30%, 50%, 70% { transform: translateX(-11px); }
+    40%, 60% { transform: translateX(11px); }
+}
+
+/* Rebuilt from scratch to remove an entire class of bugs the previous
+   version kept resurfacing (font-swap width races, a JS shrink-to-fit loop
+   with a broken floor, gradient text flickering over backdrop-filter): no
+   gradient fill, no shrink-to-fit JS, no em-sized icon coupled to a
+   font-size that used to change at runtime. The heart is a flex sibling
+   with its own fixed pixel size, and the text is free to wrap onto a
+   second line on a narrow panel instead of being forced onto one via JS. */
+.lock-title {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-wrap: wrap;
+    column-gap: 8px;
+    row-gap: 2px;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 700;
+    font-size: clamp(1rem, 3.2vw, 1.35rem);
+    line-height: 1.35;
+    color: var(--g-ink);
+    text-align: center;
+    /* Reaches all the way to the pin dots on its own — .lock-sub used to
+       supply this gap, but it collapses to zero height when left empty
+       (no subtitle text), which was pulling the title and dots together. */
+    margin-bottom: clamp(16px, 2.6vh, 24px);
+}
+
+.lock-title-heart {
+    flex: none;
+    width: 20px;
+    height: 20px;
+    fill: var(--g-lav);
+    filter: drop-shadow(0 1px 2px rgba(214, 78, 128, 0.35));
+}
+
+.lock-sub {
+    font-size: clamp(0.85rem, 2.4vw, 0.95rem);
+    font-weight: 500;
+    color: var(--g-ink-soft);
+    line-height: 1.5;
+    margin-bottom: clamp(14px, 2.4vh, 22px);
+}
+
+.lock-sub:empty { display: none; }
+
+/* PIN dots */
+.pin-dots {
+    display: flex;
+    justify-content: center;
+    gap: clamp(9px, 1.8vw, 13px);
+    margin-bottom: clamp(6px, 1.2vh, 10px);
+}
+
+.pin-dot {
+    width: clamp(11px, 1.9vw, 14px);
+    height: clamp(11px, 1.9vw, 14px);
+    border-radius: 50%;
+    background: transparent;
+    border: 2px solid rgba(255, 143, 187, 0.4);
+    transition: transform 0.3s cubic-bezier(0.34, 1.6, 0.5, 1),
+                background 0.25s ease, border-color 0.25s ease, box-shadow 0.25s ease;
+}
+
+.pin-dot.filled {
+    background: linear-gradient(150deg, var(--g-pink), var(--g-lav));
+    border-color: transparent;
+    transform: scale(1.32);
+    box-shadow: 0 0 14px rgba(255, 143, 187, 0.6);
+}
+
+.pin-dots.wrong .pin-dot {
+    background: #ff5f7e;
+    border-color: transparent;
+    box-shadow: 0 0 14px rgba(255, 95, 126, 0.55);
+}
+
+.pin-dots.correct .pin-dot {
+    background: linear-gradient(150deg, #ffd76e, #ff9ec7);
+    border-color: transparent;
+    transform: scale(1.45);
+    box-shadow: 0 0 20px rgba(255, 200, 110, 0.85);
+}
+
+/* ───────────────────────────────
+   🌸 Unlock bloom — a quiet, natural payoff for the correct code, softer
+   than the confetti/emoji burst already firing alongside it. A short ring
+   of light and a handful of petals drift up from where the dots are and
+   fade; nothing about it depends on JS timing being exact, since every
+   piece is a self-contained CSS animation with `forwards` fill.
+   ─────────────────────────────── */
+.bloom-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: visible;
+    z-index: 15;
+}
+
+.bloom-ring {
+    position: absolute;
+    left: 50%;
+    top: 40%;
+    width: 44px;
+    height: 44px;
+    margin: -22px 0 0 -22px;
+    border-radius: 50%;
+    background: radial-gradient(circle,
+        rgba(255, 215, 110, 0.55) 0%,
+        rgba(255, 158, 199, 0.35) 45%,
+        transparent 72%);
+    opacity: 0;
+    animation: bloomRing 1.1s ease-out forwards;
+}
+
+@keyframes bloomRing {
+    0%   { opacity: 0;   scale: 0.5; }
+    28%  { opacity: 0.9; }
+    100% { opacity: 0;   scale: 3.4; }
+}
+
+.petal {
+    position: absolute;
+    left: 50%;
+    top: 42%;
+    border-radius: 0 60% 0 60%;
+    opacity: 0;
+    animation: petalRise var(--dur, 1.6s) ease-out forwards;
+    animation-delay: var(--delay, 0s);
+}
+
+@keyframes petalRise {
+    0%   { opacity: 0;   translate: 0 0;                 rotate: 0deg;         scale: 0.4; }
+    14%  { opacity: 0.95; }
+    100% { opacity: 0;   translate: var(--dx) var(--dy); rotate: var(--rot);   scale: 1; }
+}
+
+/* Message line reserves its height so nothing jumps */
+.lock-msg {
+    min-height: 1.5em;
+    font-size: clamp(0.8rem, 2.2vw, 0.9rem);
+    font-weight: 600;
+    color: var(--g-ink-soft);
+    margin-bottom: clamp(12px, 2vh, 18px);
+    transition: color 0.25s ease;
+}
+
+.lock-msg.error   { color: #f0416a; }
+.lock-msg.success { color: #17a06a; }
+
+/* Serif italic, solid colour — no gradient-clip fill (kept simple on
+   purpose; see CHANGES.md for why). */
+.lock-msg.hint {
+    font-family: 'Playfair Display', serif;
+    font-weight: 700;
+    font-style: italic;
+    letter-spacing: 0.2px;
+    color: var(--g-pink);
+}
+
+/* ───────────────────────────────
+   Keypad
+   ─────────────────────────────── */
+.keypad {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: clamp(9px, 1.7vw, 14px);
+    max-width: 300px;
+    margin: 0 auto;
+}
+
+.key {
+    position: relative;
+    min-width: 44px;
+    min-height: 44px;
+    height: clamp(52px, 7.6vh, 66px);
+    border: 1.5px solid rgba(255, 255, 255, 0.9);
+    border-radius: 20px;
+    background: rgba(255, 255, 255, 0.72);
+    color: #d9518a;
+    font-family: 'Quicksand', sans-serif;
+    font-size: clamp(1.1rem, 3vw, 1.35rem);
+    font-weight: 700;
+    cursor: pointer;
+    overflow: hidden;
+    -webkit-tap-highlight-color: transparent;
+    touch-action: manipulation;
+    box-shadow: 0 5px 14px rgba(196, 90, 140, 0.12);
+    transition: transform 0.16s cubic-bezier(0.34, 1.6, 0.5, 1),
+                box-shadow 0.22s ease, background 0.22s ease;
+}
+
+.key:hover {
+    transform: translateY(-2px);
+    background: #ffffff;
+    box-shadow: 0 10px 22px rgba(196, 90, 140, 0.2);
+}
+
+.key:active { transform: scale(0.93); box-shadow: 0 3px 8px rgba(196, 90, 140, 0.16); }
+
+.key:focus-visible { outline: 3px solid var(--g-pink); outline-offset: 3px; }
+
+.key.key-action {
+    color: #9d84c9;
+    background: rgba(247, 243, 255, 0.8);
+}
+
+.key.key-enter {
+    color: #fff;
+    background: linear-gradient(140deg, var(--g-pink) 0%, var(--g-lav) 100%);
+    border-color: rgba(255, 255, 255, 0.55);
+    box-shadow: 0 8px 20px rgba(200, 120, 190, 0.35);
+}
+
+.key.key-enter:hover {
+    background: linear-gradient(140deg, #ffa0c6 0%, #c3abff 100%);
+}
+
+.key .ripple {
+    position: absolute;
+    border-radius: 50%;
+    transform: translate(-50%, -50%) scale(0);
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.95), rgba(255, 175, 210, 0.12) 70%);
+    animation: keyRipple 0.5s ease-out forwards;
+    pointer-events: none;
+}
+
+@keyframes keyRipple {
+    to { transform: translate(-50%, -50%) scale(2.6); opacity: 0; }
+}
+
+/* A quiet decorative beat where the text hint used to sit — three soft
+   dots breathing in sequence, instead of a lone static emoji. */
+.lock-hint {
+    margin-top: clamp(14px, 2.2vh, 20px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 7px;
+}
+
+.lock-hint .hint-dot {
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: linear-gradient(150deg, var(--g-pink), var(--g-lav));
+    opacity: 0.55;
+    animation: hintBreathe 1.8s ease-in-out infinite;
+}
+
+.lock-hint .hint-dot:nth-child(2) { animation-delay: 0.22s; }
+.lock-hint .hint-dot:nth-child(3) { animation-delay: 0.44s; }
+
+@keyframes hintBreathe {
+    0%, 60%, 100% { transform: translateY(0) scale(1); opacity: 0.45; }
+    30% { transform: translateY(-5px) scale(1.25); opacity: 1; }
+}
+
+/* ───────────────────────────────
+   😾😼😹 Angry cat trio — all three hop in together, symmetric, on a
+   wrong code. position:fixed + anchored from the TOP-CENTER means the
+   landing spot never depends on how tall the card is (unlike anchoring
+   below the card, which clipped on short phones). They land ABOVE the
+   gift box. Each cat perches on its own corner of the CARD, not the
+   box — so they land beside the password field itself. .lock-card-wrap
+   is the positioning root: cat-1 claims top-left, cat-3 (its visual
+   twin in size) mirrors it at top-right, and cat-2 (the narrowest,
+   easiest to tuck in) takes bottom-right — three of the card's four
+   corners, left symmetric on top and anchored on the bottom so nothing
+   crowds the keypad hint text beneath it.
+   ─────────────────────────────── */
+.lock-card-wrap {
+    position: relative;
+    width: 100%;
+}
+
+.cat-trio {
+    position: absolute;
+    inset: 0;
+    z-index: 20;
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.cat-img {
+    position: absolute;
+    display: block;
+    height: clamp(56px, 8.4vh, 92px);
+    width: auto;
+    filter: drop-shadow(0 10px 16px rgba(190, 40, 70, 0.38));
+    opacity: 0;
+    transition: transform 0.5s cubic-bezier(0.34, 1.7, 0.5, 1), opacity 0.3s ease;
+}
+
+/* top-left corner */
+.cat-1 {
+    top: clamp(-30px, -4.5vh, -12px);
+    left: clamp(-10px, -3.5vw, 2px);
+    transform: translate(-46px, -34px) scale(0.5);
+    transition-delay: 0s;
+}
+.cat-trio.is-visible .cat-1 { transform: translate(0, 0) rotate(-9deg) scale(1); opacity: 1; }
+
+/* top-right corner — mirrors cat-1 */
+.cat-3 {
+    top: clamp(-28px, -4vh, -10px);
+    right: clamp(-10px, -3.5vw, 2px);
+    transform: translate(46px, -34px) scale(0.5);
+    transition-delay: 0.1s;
+}
+.cat-trio.is-visible .cat-3 { transform: translate(0, 0) rotate(8deg) scale(1); opacity: 1; }
+
+/* bottom-right corner — narrowest cat, tucked in so it never crowds the hint text */
+.cat-2 {
+    height: clamp(44px, 6.4vh, 72px);
+    bottom: clamp(6px, 1.6vh, 20px);
+    right: clamp(-28px, -6.5vw, -10px);
+    transform: translate(40px, 30px) scale(0.5);
+    transition-delay: 0.2s;
+}
+.cat-trio.is-visible .cat-2 { transform: translate(0, 0) rotate(-6deg) scale(1); opacity: 1; }
+
+/* bottom-left corner — the fourth cat, mirrors cat-2 to close out all four corners */
+.cat-4 {
+    height: clamp(46px, 6.6vh, 76px);
+    bottom: clamp(4px, 1.4vh, 18px);
+    left: clamp(-26px, -6vw, -8px);
+    transform: translate(-40px, 30px) scale(0.5);
+    transition-delay: 0.28s;
+}
+.cat-trio.is-visible .cat-4 { transform: translate(0, 0) rotate(7deg) scale(1); opacity: 1; }
+
+/* Fixed to the true viewport bottom — not to .lock-card-wrap — so the
+   message can never end up in whatever leftover space happens to sit
+   below the card. On iPad the card grows tall enough that "below the
+   card" space can shrink to almost nothing (or run out completely),
+   which pushed the bubble low enough to clip. Anchoring from the
+   viewport edge is safe by construction regardless of card height. */
+.cat-bubble {
+    position: fixed;
+    left: 50%;
+    bottom: calc(clamp(18px, 4vh, 34px) + env(safe-area-inset-bottom, 0px));
+    z-index: 21;
+    max-width: min(78vw, 320px);
+    background: #ffffff;
+    color: #e0356e;
+    font-family: 'Quicksand', sans-serif;
+    font-weight: 800;
+    font-size: clamp(0.68rem, 1.8vw, 0.8rem);
+    line-height: 1.3;
+    padding: 5px 12px;
+    border-radius: 14px;
+    box-shadow: 0 6px 16px rgba(190, 40, 70, 0.25);
+    white-space: normal;
+    text-align: center;
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px) scale(0.85);
+    transition: transform 0.35s cubic-bezier(0.34, 1.7, 0.5, 1) 0.26s, opacity 0.3s ease 0.26s;
+}
+
+.cat-bubble::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 100%;
+    transform: translateX(-50%);
+    border: 6px solid transparent;
+    border-bottom-color: #ffffff;
+}
+
+.cat-trio.is-visible {
+    opacity: 1;
+}
+
+.cat-trio.is-visible .cat-bubble { transform: translateX(-50%) translateY(0) scale(1); opacity: 1; }
+
+.cat-trio.is-leaving .cat-1 { transform: translate(-46px, -34px) scale(0.5); opacity: 0; transition-delay: 0s; }
+.cat-trio.is-leaving .cat-3 { transform: translate(46px, -34px) scale(0.5); opacity: 0; transition-delay: 0s; }
+.cat-trio.is-leaving .cat-2 { transform: translate(40px, 30px) scale(0.5); opacity: 0; transition-delay: 0s; }
+.cat-trio.is-leaving .cat-4 { transform: translate(-40px, 30px) scale(0.5); opacity: 0; transition-delay: 0s; }
+.cat-trio.is-leaving .cat-bubble {
+    opacity: 0;
+    transform: translateX(-50%) translateY(10px) scale(0.85);
+    transition-delay: 0s;
+}
+
+/* Very short viewports: keep the corner cats compact and pulled in
+   tighter so they can't spill past the card or off the screen. */
+@media (max-height: 620px) {
+    .cat-img { height: clamp(36px, 5.6vh, 52px); }
+    .cat-1 { top: clamp(-18px, -3vh, -8px); left: clamp(-6px, -2vw, 0px); }
+    .cat-3 { top: clamp(-16px, -2.6vh, -6px); right: clamp(-6px, -2vw, 0px); }
+    .cat-2 { height: clamp(30px, 4.4vh, 42px); bottom: clamp(4px, 1vh, 12px); right: clamp(-16px, -4vw, -4px); }
+    .cat-4 { height: clamp(32px, 4.6vh, 44px); bottom: clamp(4px, 1vh, 12px); left: clamp(-14px, -3.5vw, -4px); }
+    .cat-bubble { font-size: 0.64rem; padding: 4px 10px; bottom: calc(clamp(10px, 2.4vh, 18px) + env(safe-area-inset-bottom, 0px)); }
+}
+
+/* Narrow phones: pull the side corners in so nothing clips past the
+   viewport edge (.lock-screen clips overflow, so this is about looking
+   intentional, not a safety net). */
+@media (max-width: 420px) {
+    .cat-img { height: clamp(46px, 7.2vh, 68px); }
+    .cat-1 { left: clamp(-4px, -1.5vw, 2px); }
+    .cat-3 { right: clamp(-4px, -1.5vw, 2px); }
+    .cat-2 { height: clamp(38px, 5.6vh, 54px); right: clamp(-14px, -3.5vw, -4px); }
+    .cat-4 { height: clamp(40px, 5.8vh, 56px); left: clamp(-12px, -3vw, -4px); }
+}
+
+/* Screen-reader-only helper input for hardware keyboards */
+.sr-only {
+    position: absolute;
+    width: 1px; height: 1px;
+    padding: 0; margin: -1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+    white-space: nowrap;
+    border: 0;
+}
+
+/* ───────────────────────────────
+   📱 iPad Gen 11 — Portrait 820–834
+   ─────────────────────────────── */
+@media (min-width: 768px) and (max-width: 1194px) {
+    .lock-stage { max-width: 500px; gap: 26px; }
+
+    .lock-panel { padding: 36px 40px 32px; border-radius: 38px; }
+
+    .keypad { max-width: 360px; gap: 16px; }
+
+    .key {
+        height: 76px;          /* well above the 44px touch minimum */
+        border-radius: 24px;
+        font-size: 1.55rem;
+    }
+
+    .pin-dot { width: 15px; height: 15px; }
+
+    .gift { transform-origin: 50% 100%; }
+}
+
+/* iPad landscape / any short-but-wide screen: compact so the box and
+   the card never collide. */
+@media (min-width: 1000px) and (max-height: 900px) and (orientation: landscape) {
+    .lock-stage { max-width: 440px; gap: 12px; }
+    .gift { width: 150px; height: 150px; }
+    .gift-body { width: 116px; height: 80px; margin-left: -58px; bottom: 14px; }
+    .gift-lid  { width: 136px; height: 34px; margin-left: -68px; top: 46px; }
+    .gift-bow  { top: -30px; width: 106px; height: 60px; margin-left: -53px; }
+    .gift-shadow { width: 100px; margin-left: -50px; }
+    .lock-panel { padding: 22px 32px 20px; }
+    .key { height: 56px; border-radius: 18px; font-size: 1.25rem; }
+    .lock-sub { margin-bottom: 12px; }
+}
+
+/* Short viewports (phone landscape) — drop the box, keep the keypad usable */
+@media (max-height: 620px) {
+    .gift { display: none; }
+    .lock-stage { max-width: 380px; }
+    .key { height: 46px; border-radius: 14px; }
+}
+
+@media (max-width: 767px) {
+    .lock-stage { max-width: 380px; }
+    .keypad { max-width: 280px; }
+    .gift { width: 168px; height: 168px; }
+    .gift-body { width: 128px; height: 88px; margin-left: -64px; }
+    .gift-lid  { width: 150px; height: 38px; margin-left: -75px; top: 52px; }
+    .gift-bow  { top: -36px; width: 118px; height: 66px; margin-left: -59px; }
+    .gift-shadow { width: 110px; margin-left: -55px; }
+}
+
+/* ───────────────────────────────
+   ♿ Reduced motion
+   ─────────────────────────────── */
+@media (prefers-reduced-motion: reduce) {
+    .lock-bg span,
+    .lock-rays,
+    .lock-panel,
+    .lock-panel.is-entering,
+    .gift,
+    .gift-inner,
+    .gift-shadow,
+    .gift-shine,
+    .gift-glow,
+    .gift-burst,
+    .gift-body,
+    .spark,
+    .hint-dot {
+        animation: none !important;
+    }
+    .key, .pin-dot,
+    .cat-trio, .cat-img, .cat-bubble {
+        transition-duration: 0.01ms !important;
+        transition-delay: 0s !important;
+    }
+    /* The lid/bow open sequence is a keyframe animation now, not a
+       transition — `animation: none` alone would leave them sitting at
+       their CLOSED rest position forever, since nothing would ever carry
+       them to the open state. Jump straight to that end state instead, so
+       the box still reads as opened, just without the flight there. */
+    .lock-screen.is-unlocked .gift-lid {
+        animation: none !important;
+        transform: translate(8px, -156px) rotate(-20deg);
+        opacity: 0;
+    }
+    .lock-screen.is-unlocked .gift-bow {
+        animation: none !important;
+        transform: translate(-6px, -128px) rotate(-34deg) scale(0.68);
+        opacity: 0;
+    }
+    /* Everything else here is a hard cut on purpose — no scale, no
+       movement, nothing that could read as "motion". A plain opacity
+       cross-fade isn't movement, though, so .lock-screen keeps a short one
+       instead of also going instant: the unlock text gets a beat to be
+       read before the screen fades, rather than popping to the next page
+       mid-word. */
+    .lock-screen { transition-duration: 0.35s !important; }
+}

@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport"
+    content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <title></title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <!-- ══════ 3D scene ══════ -->
+  <canvas id="scene"></canvas>
+
+  <!-- ══════ Confetti transition layer ══════ -->
+  <canvas id="confetti"></canvas>
+
+  <!-- ══════ Intro card (skipped — the gallery starts immediately; see
+       "auto-start" in main.js) ══════ -->
+  <div class="intro hidden" id="intro">
+    <div class="intro-card">
+      <h1 class="intro-title"></h1>
+      <div class="intro-art" id="introArt"></div>
+      <p class="intro-sub">Para mi princesita</p>
+      <button class="intro-btn" id="startBtn">Start</button>
+    </div>
+  </div>
+
+  <!-- ══════ In-scene HUD ══════ -->
+  <div class="hud" id="hud">
+    <div class="hud-top">
+      <span class="hud-brand"></span>
+    </div>
+    <div class="hud-bottom">
+      <button class="hud-btn" id="btnOrbit" title="Órbita automática">⟳</button>
+      <button class="hud-btn" id="btnHeart" title="Latido del corazón">♥</button>
+      <button class="hud-btn" id="btnHome" title="Back to the letter" aria-label="Back to the letter">
+        <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M3 11.5 12 4l9 7.5" />
+          <path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9" />
+        </svg>
+      </button>
+    </div>
+    <div class="hud-hint" id="hudHint"></div>
+  </div>
+
+  <!-- ══════ Photo lightbox ══════ -->
+  <div class="lightbox" id="lightbox">
+    <div class="lightbox-inner">
+      <img id="lightboxImg" alt="">
+      <p id="lightboxCap"></p>
+    </div>
+  </div>
+
+  <script type="importmap">
+{
+  "imports": {
+    "three": "./lib/three.module.js"
+  }
+}
+</script>
+  <script type="module" src="main.js"></script>
+</body>
+
+</html>

@@ -1,0 +1,666 @@
+/* ══════════════════════════════════════════════════════════════════════
+   Birthday Balloons — pop them before they drift away
+   Touch-first: this is played with a finger on an iPad, never a mouse.
+   ══════════════════════════════════════════════════════════════════════ */
+
+:root {
+    --rose-gold: #f4acb7;
+    --deep-rose: #d90429;
+    --petal-ink: #c9184a;
+    --ink: #5c3a48;
+    --ink-soft: rgba(92, 58, 72, .6);
+
+    --font-display: 'Playfair Display', serif;
+    --font-script: 'Great Vibes', cursive;
+    --font-body: 'Quicksand', system-ui, sans-serif;
+
+    /* one rhythm scale so nothing can ever collide — docs/IPAD_DESIGN_REQUIREMENTS.md */
+    --edge: clamp(14px, 3vw, 26px);
+    --tap: 48px;
+    /* every control clears Apple's 44px minimum */
+
+    --glass: rgba(255, 255, 255, .58);
+    --glass-line: rgba(255, 255, 255, .85);
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+/* The browser hides [hidden] with `display: none`, but any author rule that
+   sets `display` outranks it — `.score-row { display: grid }` did exactly
+   that and left the score panel on screen before the first round. Restate
+   it once here so the attribute always wins, for every element. */
+[hidden] {
+    display: none !important;
+}
+
+html,
+body {
+    height: 100%;
+    overflow: hidden;
+}
+
+body {
+    position: relative;
+    font-family: var(--font-body);
+    color: var(--ink);
+    background: radial-gradient(circle at 50% 28%, #fff7fa 0%, #ffe8ef 52%, #ffd8e4 100%);
+    /* the whole screen is a play surface — never scroll, zoom or select */
+    touch-action: none;
+    overscroll-behavior: none;
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-tap-highlight-color: transparent;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Background glow
+   ══════════════════════════════════════════════════════════════════════ */
+
+.bg-orbs {
+    position: fixed;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+    overflow: hidden;
+}
+
+.orb {
+    position: absolute;
+    border-radius: 50%;
+    filter: blur(58px);
+    opacity: .5;
+}
+
+.orb-1 {
+    width: 52vmin;
+    height: 52vmin;
+    left: -12vmin;
+    top: -8vmin;
+    background: radial-gradient(circle, #ffc2d4 0%, rgba(255, 194, 212, 0) 70%);
+    animation: drift-a 30s ease-in-out infinite;
+}
+
+.orb-2 {
+    width: 60vmin;
+    height: 60vmin;
+    right: -16vmin;
+    bottom: -12vmin;
+    background: radial-gradient(circle, #e2c9ff 0%, rgba(226, 201, 255, 0) 70%);
+    animation: drift-b 36s ease-in-out infinite;
+}
+
+@keyframes drift-a {
+
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0);
+    }
+
+    50% {
+        transform: translate3d(6vmin, 5vmin, 0);
+    }
+}
+
+@keyframes drift-b {
+
+    0%,
+    100% {
+        transform: translate3d(0, 0, 0);
+    }
+
+    50% {
+        transform: translate3d(-7vmin, -4vmin, 0);
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Play field
+   ══════════════════════════════════════════════════════════════════════ */
+
+#field {
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    display: block;
+    touch-action: none;
+}
+
+/* The escape line. Balloons that cross it are gone, so it is drawn as a
+   soft gradient hint rather than a hard rule — readable, never noisy. */
+.sky-line {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: 0;
+    height: clamp(78px, 13vh, 140px);
+    z-index: 2;
+    pointer-events: none;
+    background: linear-gradient(180deg, rgba(255, 255, 255, .5) 0%, rgba(255, 255, 255, 0) 100%);
+    opacity: 0;
+    transition: opacity .5s ease;
+}
+
+body.is-playing .sky-line {
+    opacity: 1;
+}
+
+/* pulses when a balloon is about to slip past */
+.sky-line.is-alert {
+    background: linear-gradient(180deg, rgba(255, 143, 176, .5) 0%, rgba(255, 143, 176, 0) 100%);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   HUD — two corner pills. The centre lane stays clear because that is
+   where a balloon makes its final climb, and hiding it behind a bar is
+   exactly the moment the player most needs to see it.
+   ══════════════════════════════════════════════════════════════════════ */
+
+.hud {
+    position: fixed;
+    left: 0;
+    right: 0;
+    top: calc(env(safe-area-inset-top, 0px) + var(--edge));
+    z-index: 3;
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    padding-inline: var(--edge);
+    pointer-events: none;
+    /* informational only — every tap belongs to the field */
+
+    opacity: 0;
+    visibility: hidden;
+    transition: opacity .4s ease, visibility .4s;
+}
+
+body.is-playing .hud {
+    opacity: 1;
+    visibility: visible;
+}
+
+.hud-pill {
+    display: flex;
+    align-items: center;
+    gap: clamp(7px, 1.3vmin, 12px);
+    padding: clamp(8px, 1.3vmin, 12px) clamp(13px, 2.2vmin, 20px);
+    border-radius: 999px;
+    background: var(--glass);
+    border: 1px solid var(--glass-line);
+    box-shadow: 0 10px 26px rgba(217, 4, 41, .1);
+    -webkit-backdrop-filter: blur(12px) saturate(1.25);
+    backdrop-filter: blur(12px) saturate(1.25);
+}
+
+.hud-label {
+    font-size: clamp(9px, 1.25vmin, 12px);
+    font-weight: 600;
+    letter-spacing: .08em;
+    color: var(--ink-soft);
+    white-space: nowrap;
+}
+
+.hud-value {
+    font-size: clamp(18px, 2.5vmin, 26px);
+    font-weight: 700;
+    line-height: 1;
+    color: var(--petal-ink);
+    /* fixed-width digits so the pill never jitters as the score climbs */
+    font-variant-numeric: tabular-nums;
+}
+
+/* ── combo chip: only shown once a streak is actually running ───────── */
+
+.combo-chip {
+    font-size: clamp(11px, 1.5vmin, 14px);
+    font-weight: 700;
+    line-height: 1;
+    padding: 4px 9px;
+    border-radius: 999px;
+    color: #fff;
+    background: linear-gradient(135deg, var(--deep-rose), #ff5f8a);
+    box-shadow: 0 3px 10px rgba(217, 4, 41, .3);
+    opacity: 0;
+    scale: .6;
+    transition: opacity .22s ease, scale .28s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+.combo-chip.is-on {
+    opacity: 1;
+    scale: 1;
+}
+
+.combo-chip.is-bump {
+    animation: chip-bump .42s cubic-bezier(.34, 1.56, .64, 1);
+}
+
+@keyframes chip-bump {
+    0% {
+        scale: 1;
+    }
+
+    45% {
+        scale: 1.35;
+    }
+
+    100% {
+        scale: 1;
+    }
+}
+
+/* ── lives as little balloons, not a bare number ────────────────────── */
+
+.life-dots {
+    display: flex;
+    align-items: center;
+    gap: clamp(5px, .9vmin, 8px);
+}
+
+.life-dot {
+    position: relative;
+    width: clamp(11px, 1.7vmin, 15px);
+    height: clamp(14px, 2.1vmin, 19px);
+    border-radius: 50% 50% 46% 46%;
+    background: linear-gradient(160deg, #ffd6e3 0%, #f06292 100%);
+    box-shadow: 0 2px 5px rgba(217, 4, 41, .22);
+    transition: opacity .45s ease, scale .45s cubic-bezier(.34, 1.56, .64, 1), filter .45s ease;
+}
+
+/* the knot */
+.life-dot::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: -3px;
+    width: 3px;
+    height: 3px;
+    translate: -50% 0;
+    border-radius: 50%;
+    background: #e0567f;
+}
+
+.life-dot.is-lost {
+    opacity: .26;
+    scale: .72;
+    filter: grayscale(1);
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Ready-set-go
+   ══════════════════════════════════════════════════════════════════════ */
+
+.countdown {
+    position: fixed;
+    inset: 0;
+    z-index: 5;
+    display: grid;
+    place-items: center;
+    pointer-events: none;
+    opacity: 0;
+}
+
+.countdown.is-on {
+    opacity: 1;
+}
+
+.countdown span {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(72px, 20vmin, 190px);
+    line-height: 1;
+    color: var(--petal-ink);
+    text-shadow: 0 10px 40px rgba(217, 4, 41, .22);
+    animation: count-pop .62s cubic-bezier(.22, 1, .36, 1);
+}
+
+@keyframes count-pop {
+    0% {
+        opacity: 0;
+        scale: .5;
+    }
+
+    35% {
+        opacity: 1;
+        scale: 1.06;
+    }
+
+    100% {
+        opacity: 0;
+        scale: 1.5;
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Start / game-over card
+   ══════════════════════════════════════════════════════════════════════ */
+
+.card-wrap {
+    position: fixed;
+    inset: 0;
+    z-index: 6;
+    display: grid;
+    place-items: center;
+    padding: calc(env(safe-area-inset-top, 0px) + var(--edge)) var(--edge)
+        calc(env(safe-area-inset-bottom, 0px) + var(--edge));
+    background: rgba(255, 240, 245, .5);
+    -webkit-backdrop-filter: blur(7px);
+    backdrop-filter: blur(7px);
+    transition: opacity .4s ease, visibility .4s;
+}
+
+body.is-playing .card-wrap {
+    opacity: 0;
+    visibility: hidden;
+    pointer-events: none;
+}
+
+.card {
+    width: min(92vw, 440px);
+    max-height: 100%;
+    overflow-y: auto;
+    text-align: center;
+    padding: clamp(22px, 4vmin, 38px) clamp(20px, 3.6vmin, 34px);
+    border-radius: clamp(24px, 3.6vmin, 34px);
+    background: rgba(255, 255, 255, .84);
+    border: 1px solid rgba(255, 255, 255, .96);
+    box-shadow: 0 24px 64px rgba(217, 4, 41, .15);
+    -webkit-backdrop-filter: blur(16px) saturate(1.3);
+    backdrop-filter: blur(16px) saturate(1.3);
+    animation: card-in .55s cubic-bezier(.22, 1, .36, 1);
+}
+
+@keyframes card-in {
+    from {
+        opacity: 0;
+        translate: 0 16px;
+        scale: .96;
+    }
+
+    to {
+        opacity: 1;
+        translate: 0 0;
+        scale: 1;
+    }
+}
+
+/* ── the little bouquet above the title ─────────────────────────────── */
+
+.card-art {
+    position: relative;
+    height: clamp(54px, 9vmin, 78px);
+    margin-bottom: clamp(6px, 1.2vmin, 12px);
+}
+
+.art-balloon {
+    position: absolute;
+    bottom: 0;
+    left: 50%;
+    width: clamp(24px, 4vmin, 34px);
+    height: clamp(30px, 5vmin, 43px);
+    border-radius: 50% 50% 46% 46%;
+    /* `translate` keeps the layout offset independent of the float
+       animation's transform — a transform-based centre would be wiped out */
+    translate: -50% 0;
+    box-shadow: 0 6px 14px rgba(217, 4, 41, .16);
+}
+
+.art-balloon::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 22%;
+    width: 22%;
+    height: 26%;
+    translate: -50% 0;
+    border-radius: 50%;
+    background: rgba(255, 255, 255, .72);
+    rotate: -18deg;
+}
+
+.art-balloon.b1 {
+    margin-left: -34px;
+    background: linear-gradient(160deg, #ffe0c7, #ffb27a);
+    animation: float-a 4.6s ease-in-out infinite;
+}
+
+.art-balloon.b2 {
+    scale: 1.16;
+    background: linear-gradient(160deg, #ffd6e3, #f06292);
+    animation: float-b 5.4s ease-in-out infinite;
+}
+
+.art-balloon.b3 {
+    margin-left: 34px;
+    background: linear-gradient(160deg, #e2c9ff, #b78cf5);
+    animation: float-a 5s ease-in-out infinite .8s;
+}
+
+@keyframes float-a {
+
+    0%,
+    100% {
+        transform: translateY(0) rotate(-3deg);
+    }
+
+    50% {
+        transform: translateY(-8px) rotate(3deg);
+    }
+}
+
+@keyframes float-b {
+
+    0%,
+    100% {
+        transform: translateY(-3px) rotate(2deg);
+    }
+
+    50% {
+        transform: translateY(-12px) rotate(-2deg);
+    }
+}
+
+.card-kicker {
+    font-size: clamp(10px, 1.35vmin, 12px);
+    font-weight: 600;
+    letter-spacing: .3em;
+    text-indent: .3em;
+    text-transform: uppercase;
+    color: var(--ink-soft);
+    margin-bottom: clamp(6px, 1.2vmin, 10px);
+}
+
+.card-title {
+    font-family: var(--font-display);
+    font-weight: 700;
+    font-size: clamp(28px, 5.2vmin, 42px);
+    line-height: 1.18;
+    color: var(--petal-ink);
+    margin-bottom: clamp(8px, 1.5vmin, 14px);
+}
+
+.card-text {
+    font-size: clamp(13.5px, 1.9vmin, 16px);
+    font-weight: 500;
+    line-height: 1.6;
+    color: var(--ink-soft);
+    margin-bottom: clamp(16px, 2.8vmin, 24px);
+}
+
+/* ── score readout ─────────────────────────────────────────────────── */
+
+.score-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    /* equal columns + equal gap — symmetric matrix per §2.1 */
+    gap: clamp(9px, 1.6vmin, 14px);
+    margin-bottom: clamp(12px, 2vmin, 18px);
+}
+
+.score-box {
+    padding: clamp(11px, 1.9vmin, 17px) clamp(7px, 1.3vmin, 13px);
+    border-radius: clamp(14px, 2.2vmin, 20px);
+    background: rgba(255, 255, 255, .74);
+    border: 1px solid rgba(217, 4, 41, .09);
+}
+
+.score-box dt {
+    font-size: clamp(9.5px, 1.25vmin, 12px);
+    font-weight: 600;
+    letter-spacing: .05em;
+    color: var(--ink-soft);
+    margin-bottom: 4px;
+}
+
+.score-box dd {
+    font-size: clamp(25px, 4.2vmin, 38px);
+    font-weight: 700;
+    line-height: 1;
+    color: var(--petal-ink);
+    font-variant-numeric: tabular-nums;
+}
+
+.score-box--best dd {
+    color: #c08a00;
+}
+
+.card-note {
+    font-size: clamp(12.5px, 1.75vmin, 15px);
+    font-weight: 600;
+    color: var(--deep-rose);
+    margin-bottom: clamp(12px, 2vmin, 18px);
+    line-height: 1.5;
+}
+
+/* ── buttons ───────────────────────────────────────────────────────── */
+
+.card-actions {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: clamp(8px, 1.4vmin, 12px);
+}
+
+.btn {
+    /* comfortably past the 44px touch minimum — §2.4 */
+    min-height: var(--tap);
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: clamp(11px, 1.8vmin, 15px) clamp(22px, 3.2vmin, 32px);
+    border: none;
+    border-radius: 999px;
+    font-family: inherit;
+    font-size: clamp(14px, 1.95vmin, 16.5px);
+    font-weight: 700;
+    text-decoration: none;
+    cursor: pointer;
+    transition: transform .26s cubic-bezier(.34, 1.56, .64, 1), box-shadow .26s ease;
+    -webkit-tap-highlight-color: transparent;
+}
+
+.btn-primary {
+    color: #fff;
+    background: linear-gradient(135deg, var(--deep-rose), #ff4d6d);
+    box-shadow: 0 10px 24px rgba(217, 4, 41, .28);
+}
+
+.btn-ghost {
+    color: var(--petal-ink);
+    background: rgba(255, 255, 255, .82);
+    border: 1px solid rgba(217, 4, 41, .16);
+}
+
+/* Hover only where a real pointer exists. On a touch screen :hover latches
+   after a tap and the control stays lifted until you tap somewhere else. */
+@media (hover: hover) and (pointer: fine) {
+    .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 14px 30px rgba(217, 4, 41, .36);
+    }
+
+    .btn-ghost:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 10px 22px rgba(217, 4, 41, .15);
+    }
+}
+
+/* touch gets its own press feedback, driven from pointerdown in main.js */
+.btn.is-pressed {
+    transform: scale(.96);
+}
+
+.btn:focus-visible {
+    outline: 3px solid var(--deep-rose);
+    outline-offset: 3px;
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   iPad Gen 11 — portrait 820–834, landscape 1180–1194
+   ══════════════════════════════════════════════════════════════════════ */
+
+@media (min-width: 768px) and (max-width: 1194px) {
+    :root {
+        --edge: 26px;
+        --tap: 52px;
+    }
+
+    .card {
+        width: min(74vw, 470px);
+    }
+}
+
+/* a tablet in landscape is short — lay the card out wider, not taller */
+@media (orientation: landscape) and (max-height: 900px) {
+    .card-art {
+        height: clamp(44px, 8vh, 62px);
+    }
+
+    .card-title {
+        font-size: clamp(24px, 6vh, 36px);
+    }
+
+    .score-box dd {
+        font-size: clamp(21px, 5vh, 32px);
+    }
+
+    .card-actions {
+        flex-direction: row;
+        justify-content: center;
+    }
+
+    .card-actions .btn {
+        flex: 1 1 0;
+        max-width: 210px;
+    }
+}
+
+/* ══════════════════════════════════════════════════════════════════════
+   Reduced motion
+   ══════════════════════════════════════════════════════════════════════ */
+
+@media (prefers-reduced-motion: reduce) {
+
+    .orb,
+    .art-balloon,
+    .combo-chip.is-bump {
+        animation: none;
+    }
+
+    .card {
+        animation: none;
+    }
+
+    .countdown span {
+        animation: none;
+        opacity: 1;
+    }
+
+    .btn,
+    .life-dot,
+    .combo-chip {
+        transition: none;
+    }
+}

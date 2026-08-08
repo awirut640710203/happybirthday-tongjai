@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport"
+        content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+    <meta name="theme-color" content="#ffe5ec">
+    <title>Happy Birthday Tongjai 💖 | Gourmet Celebration</title>
+    <meta name="description"
+        content="An ultra-grand, interactive birthday website made with love for Tongjai. Celebrate with music, candles, memories, and surprises!">
+
+    <!-- 🎁 Gift favicon (inline SVG, no extra request) -->
+    <link rel="icon"
+        href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Ctext y='.9em' font-size='90'%3E%F0%9F%8E%80%3C/text%3E%3C/svg%3E">
+
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700&family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,700;1,400&family=Quicksand:wght@300;400;500;600;700&display=swap"
+        rel="stylesheet">
+
+    <!-- GSAP -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/gsap.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
+
+    <!-- Styles -->
+    <link rel="stylesheet" href="css/style.css?v=1">
+    <link rel="stylesheet" href="css/lock.css?v=4">
+
+    <!-- 😾 Warm the other mascot cats so the first wrong-code swap is instant -->
+    <link rel="preload" as="image" href="assets/cats/angry-cat-2.png">
+    <link rel="preload" as="image" href="assets/cats/angry-cat-3.png">
+    <link rel="preload" as="image" href="assets/cats/angry-cat-4.png">
+
+    <!-- If scripts are blocked the gate can never open — never trap the visitor. -->
+    <noscript>
+        <style>
+            .lock-screen {
+                display: none !important;
+            }
+
+            body.is-locked {
+                overflow: auto !important;
+                height: auto !important;
+            }
+        </style>
+    </noscript>
+</head>
+
+<body class="is-locked">
+
+    <!-- ═══════════════════════════════════
+         🎁 Section 0: Gift Box Unwrap Lock Screen
+         ═══════════════════════════════════ -->
+    <div class="lock-screen" id="lock-screen" role="dialog" aria-modal="true" aria-labelledby="lock-title">
+        <div class="lock-bg" aria-hidden="true">
+            <span class="b1"></span><span class="b2"></span><span class="b3"></span><span class="b4"></span>
+        </div>
+        <canvas id="lock-bokeh" aria-hidden="true"></canvas>
+        <div class="lock-grain" aria-hidden="true"></div>
+        <div class="lock-rays" id="lock-rays" aria-hidden="true"></div>
+        <div class="lock-flash" id="lock-flash" aria-hidden="true"></div>
+
+        <div class="lock-stage">
+            <!-- 🎁 The gift, waiting to be unwrapped -->
+            <div class="gift" id="gift" aria-hidden="true">
+                <div class="gift-inner">
+                    <div class="gift-shadow"></div>
+                    <div class="gift-glow"></div>
+                    <div class="gift-burst"></div>
+                    <!-- A handful of static sparkle marks, dark until the box
+                         opens — kept as plain CSS diamonds (no extra image
+                         requests) so the "magic" reads as light escaping the
+                         box rather than a separate firework layered on top. -->
+                    <div class="gift-sparkles" aria-hidden="true">
+                        <span class="spark s1"></span>
+                        <span class="spark s2"></span>
+                        <span class="spark s3"></span>
+                        <span class="spark s4"></span>
+                        <span class="spark s5"></span>
+                    </div>
+                    <div class="gift-body">
+                        <div class="gift-inside"></div>
+                        <div class="gift-ribbon-v"></div>
+                        <div class="gift-shine"></div>
+                    </div>
+                    <div class="gift-lid">
+                        <div class="gift-ribbon-h"></div>
+                        <div class="gift-bow">
+                            <svg class="bow-svg" viewBox="0 0 140 78" width="140" height="78">
+                                <defs>
+                                    <linearGradient id="bowFill" x1="0" y1="0" x2="1" y2="1">
+                                        <stop offset="0%" style="stop-color:var(--g-pink-soft)" />
+                                        <stop offset="65%" style="stop-color:var(--g-pink)" />
+                                        <stop offset="100%" style="stop-color:var(--g-lav-soft)" />
+                                    </linearGradient>
+                                    <linearGradient id="bowKnot" x1="0" y1="0" x2="0" y2="1">
+                                        <stop offset="0%" style="stop-color:var(--g-pink-soft)" />
+                                        <stop offset="100%" style="stop-color:var(--g-pink)" />
+                                    </linearGradient>
+                                </defs>
+                                <!-- tails, soft flowing curves tapering to a point -->
+                                <path d="M74,46 C80,56 84,67 78,78 C74,68 68,58 66,46 Z" fill="url(#bowFill)" />
+                                <path d="M66,46 C60,56 56,67 62,78 C66,68 72,58 74,46 Z" fill="url(#bowFill)" />
+                                <!-- loops, one flowing curve mirrored for exact symmetry -->
+                                <path d="M70,42 C80,20 100,6 118,10 C132,13 136,28 122,36 C108,44 86,46 70,42 Z" fill="url(#bowFill)" />
+                                <path d="M70,42 C60,20 40,6 22,10 C8,13 4,28 18,36 C32,44 54,46 70,42 Z" fill="url(#bowFill)" />
+                                <!-- soft loop shine -->
+                                <ellipse cx="112" cy="16" rx="9" ry="3" transform="rotate(18 112 16)" fill="rgba(255,255,255,0.55)" />
+                                <ellipse cx="28" cy="16" rx="9" ry="3" transform="rotate(-18 28 16)" fill="rgba(255,255,255,0.55)" />
+                                <!-- knot, soft pill shape wrapped over the loops -->
+                                <rect x="60" y="32" width="20" height="18" rx="9" fill="url(#bowKnot)" />
+                                <ellipse cx="70" cy="34" rx="9" ry="4" fill="var(--g-lav-soft)" opacity="0.5" />
+                                <rect x="69" y="35" width="2" height="12" rx="1" fill="rgba(255,255,255,0.5)" />
+                            </svg>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="lock-card-wrap">
+                <div class="lock-panel" id="lock-panel">
+                    <h1 class="lock-title" id="lock-title">
+                        <span class="lock-title-text">Enter the code to unlock your gift</span>
+                        <svg class="lock-title-heart" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                        </svg>
+                    </h1>
+                    <p class="lock-sub"></p>
+
+                    <div class="pin-dots" id="pin-dots" aria-hidden="true"></div>
+                    <p class="lock-msg" id="lock-msg" role="status" aria-live="polite"></p>
+
+                    <div class="keypad" id="keypad"></div>
+
+                    <label class="sr-only" for="lock-ghost-input">8-digit passcode</label>
+                    <input class="sr-only" id="lock-ghost-input" type="text" inputmode="none" autocomplete="off"
+                        readonly>
+
+                    <p class="lock-hint" aria-hidden="true">
+                        <span class="hint-dot"></span><span class="hint-dot"></span><span class="hint-dot"></span>
+                    </p>
+                </div>
+
+                <!-- 😾😼😹😾 Angry cat quartet — each cat perches on its own corner
+                     of the card (not the gift box) and hops in on a wrong code.
+                     Positioned relative to .lock-card-wrap so every corner
+                     tracks the card exactly, however tall it grows. -->
+                <div class="cat-trio" id="cat-trio" aria-hidden="true">
+                    <img class="cat-img cat-1" src="assets/cats/angry-cat.png" alt="" width="431" height="544" decoding="async">
+                    <img class="cat-img cat-3" src="assets/cats/angry-cat-3.png" alt="" width="444" height="464" decoding="async">
+                    <img class="cat-img cat-2" src="assets/cats/angry-cat-2.png" alt="" width="208" height="373" decoding="async">
+                    <img class="cat-img cat-4" src="assets/cats/angry-cat-4.png" alt="" width="706" height="586" decoding="async">
+                    <div class="cat-bubble" id="cat-bubble">Wrong code! 😾😼😹</div>
+                </div>
+
+                <!-- Soft petal + light bloom, played once when the code is
+                     correct. A separate layer from .lock-panel on purpose:
+                     the panel fades and steps aside on unlock, but this stays
+                     put and keeps drifting through that moment instead of
+                     fading with it. -->
+                <div class="bloom-layer" id="bloomLayer" aria-hidden="true"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🎵 Floating Audio Control Pill -->
+    <div class="audio-control-pill" id="audio-control-pill">
+        <div class="audio-icon-wrap" id="audio-icon">🎵</div>
+        <div class="music-notes-anim">
+            <div class="music-bar"></div>
+            <div class="music-bar"></div>
+            <div class="music-bar"></div>
+        </div>
+        <span class="audio-label" id="audio-label">Sound FX: ON</span>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         Section 1: Hero Landing
+         ═══════════════════════════════════ -->
+    <section id="landing" class="section">
+        <canvas id="landing-particles"></canvas>
+        <div class="landing-glow" aria-hidden="true"></div>
+        <div class="landing-content">
+            <div class="hero-heart">
+                <span class="hero-heart-halo" aria-hidden="true"></span>
+                <span class="hero-heart-pulse" aria-hidden="true"></span>
+                <span class="hero-heart-pulse pulse-delay" aria-hidden="true"></span>
+                <span class="hero-heart-glow-ring" aria-hidden="true"></span>
+                <svg class="hero-heart-icon" viewBox="0 0 24 24" aria-hidden="true">
+                    <defs>
+                        <linearGradient id="heroHeartGrad" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#ffd9e6"/>
+                            <stop offset="45%" stop-color="#ff5f8a"/>
+                            <stop offset="100%" stop-color="#d90429"/>
+                        </linearGradient>
+                        <clipPath id="heroHeartClip">
+                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                        </clipPath>
+                    </defs>
+                    <path fill="url(#heroHeartGrad)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    <g clip-path="url(#heroHeartClip)">
+                        <rect class="hero-heart-shine" x="-11" y="0" width="7" height="24" fill="rgba(255,255,255,0.85)" transform="skewX(-20)"/>
+                    </g>
+                </svg>
+                <span class="hero-heart-sparkle s1" aria-hidden="true"></span>
+                <span class="hero-heart-sparkle s2" aria-hidden="true"></span>
+                <span class="hero-heart-sparkle s3" aria-hidden="true"></span>
+                <span class="sr-only">💖</span>
+            </div>
+            <h1 class="landing-title">Happy Birthday Tongjai</h1>
+            <p class="landing-subtitle"></p>
+            <a href="#cake-section" id="cta-btn" class="landing-cta journey-btn">
+                Click for Surprise
+            </a>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════
+         🎂 Section 2: Gourmet 3-Tier Birthday Cake (REDESIGNED)
+         ═══════════════════════════════════ -->
+    <section id="cake-section" class="section">
+        <div class="section-inner">
+            <div class="section-header">
+                <h2 class="section-title">Make A Birthday Wish! 🎂</h2>
+            </div>
+
+            <div class="gourmet-cake-wrapper">
+                <div class="cake-stand">
+                    <!-- 3-Tier Cake Stack -->
+                    <div class="cake-stack">
+                        <!-- Top Tier -->
+                        <div class="tier-top">
+                            <!-- Candles sitting neatly on top tier -->
+                            <div class="candles-row">
+                                <div class="candle" id="candle-1">
+                                    <div class="candle-wick"></div>
+                                    <div class="candle-flame"></div>
+                                </div>
+                                <div class="candle" id="candle-2">
+                                    <div class="candle-wick"></div>
+                                    <div class="candle-flame"></div>
+                                </div>
+                                <div class="candle" id="candle-3">
+                                    <div class="candle-wick"></div>
+                                    <div class="candle-flame"></div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Middle Tier -->
+                        <div class="tier-middle">
+                            <div class="frosting-drips"></div>
+                        </div>
+
+                        <!-- Bottom Tier -->
+                        <div class="tier-bottom">
+                            <div class="tier-dots">
+                                <span></span><span></span><span></span><span></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Glass Cake Plate Base -->
+                    <div class="glass-plate"></div>
+                    <div class="glass-pedestal"></div>
+                    <div class="glass-base"></div>
+                </div>
+
+                <button class="blow-btn journey-btn" id="blow-all-btn" type="button">
+                    <span class="blow-btn-label" id="blow-btn-label">Blow To Light The Candles</span>
+                    <span class="blow-btn-charge" aria-hidden="true">
+                        <span class="blow-btn-charge-fill" id="blow-charge-fill"></span>
+                    </span>
+                </button>
+                <p class="blow-btn-hint" id="blow-hint" role="status" aria-live="polite">
+                    Press and hold, then blow into your mic
+                </p>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════
+         💌 Section 3: Interactive Envelope (UX CLEANED)
+         ═══════════════════════════════════ -->
+    <section id="love-letter" class="section">
+        <div class="section-inner">
+            <div class="section-header">
+                <h2 class="section-title">A Special Letter For You 💌</h2>
+                <p class="section-subtitle">Tap the heart seal to open your gift 💖</p>
+            </div>
+
+            <!-- The envelope is scenery now — only the seal is a control, so
+                 it carries no role, no tabindex and no handler. A tap that
+                 misses the seal should do nothing at all rather than open a
+                 second thing the visitor never asked for. -->
+            <div class="envelope-clean-box" id="envelope-card">
+                <div class="envelope-flap-top"></div>
+                <div class="wax-seal-btn" id="wax-seal" role="link" tabindex="0" aria-label="Open the Galaxy Gallery">💖</div>
+            </div>
+
+            <div class="section-next">
+                <a href="#gallery" class="journey-btn">Continue To Our Memories</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════
+         📸 Section 4: 3D Tilt Polaroid Gallery
+         ═══════════════════════════════════ -->
+    <section id="gallery" class="section">
+        <div class="section-inner">
+            <div class="section-header">
+                <h2 class="section-title">Our Precious Memories 📸</h2>
+            </div>
+            <div class="polaroid-grid" id="polaroid-grid">
+                <!-- Dynamic Polaroids -->
+            </div>
+
+            <div class="section-next">
+                <a href="#timeline" class="journey-btn">Continue To Our Journey</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- Lightbox -->
+    <div id="lightbox" class="lightbox">
+        <button class="lightbox-close" id="lightbox-close">✕</button>
+        <div class="lightbox-content">
+            <img src="" alt="Full size photo">
+        </div>
+    </div>
+
+    <!-- ═══════════════════════════════════
+         🕰️ Section 5: Memory Timeline
+         ═══════════════════════════════════ -->
+    <section id="timeline" class="section">
+        <div class="section-inner">
+            <div class="section-header">
+                <h2 class="section-title">
+                    Moments of Happiness
+                    <span class="title-spark" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none">
+                            <defs>
+                                <linearGradient id="titleSparkGrad" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#ffd76e"/>
+                                    <stop offset="55%" stop-color="#ff5f8a"/>
+                                    <stop offset="100%" stop-color="#d90429"/>
+                                </linearGradient>
+                            </defs>
+                            <path class="spark-lg" fill="url(#titleSparkGrad)"
+                                  d="M12 2c.5 4.7 2.8 7 7.5 7.5-4.7.5-7 2.8-7.5 7.5-.5-4.7-2.8-7-7.5-7.5C9.2 9 11.5 6.7 12 2z"/>
+                            <path class="spark-sm" fill="url(#titleSparkGrad)"
+                                  d="M18.5 15c.25 2.3 1.4 3.4 3.5 3.7-2.1.3-3.25 1.4-3.5 3.7-.25-2.3-1.4-3.4-3.5-3.7 2.1-.3 3.25-1.4 3.5-3.7z"/>
+                        </svg>
+                    </span>
+                </h2>
+            </div>
+            <div class="timeline-wrapper" id="timeline-wrapper">
+                <!-- Timeline items -->
+            </div>
+
+            <div class="section-next">
+                <a href="#finale" class="journey-btn">Continue To The Finale</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════
+         🌌 Section 7: Grand Finale
+         ═══════════════════════════════════ -->
+    <section id="finale" class="section">
+        <canvas id="fireworks-canvas"></canvas>
+        <div class="finale-content">
+            <h2 class="finale-title">Thank You For Being You 💖</h2>
+            <p class="finale-message">
+                Every laugh, every conversation, and every moment we've spent together means the world to me.
+                Thank you so much for being in my life and for always filling it with positivity and brightness.
+            </p>
+            <p class="finale-message">
+                On your birthday, I wish you endless happiness, beautiful love, and success in everything
+                your heart desires. You deserve all the joy and sweetness this world has to offer...
+                keep smiling and stay as wonderfully bright as you are for a long, long time!
+            </p>
+        </div>
+    </section>
+
+    <!-- Scripts (script.js first: it exposes startLandingExperience for the gate) -->
+    <script src="js/script.js?v=1"></script>
+    <script src="js/lock.js?v=3"></script>
+</body>
+
+</html>
