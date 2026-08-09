@@ -76,6 +76,8 @@
     position: relative;
     margin-top: clamp(8px, 1.6vh, 16px);
     --u: 1px;
+    isolation: isolate;
+    overflow: visible;
 }
 
 @media (min-width: 768px) { .reveal-box-wrap { --u: 1.3px; } }
@@ -285,6 +287,8 @@
     z-index: 1;
     pointer-events: none;
     opacity: 0;
+    transform: translateZ(0);
+    will-change: transform, opacity;
     background: repeating-conic-gradient(
         from 0deg at 50% 50%,
         rgba(255, 224, 178, 0.8) 0deg 3deg,
@@ -308,6 +312,8 @@
     z-index: 0;
     pointer-events: none;
     opacity: 0;
+    transform: translateZ(0);
+    will-change: transform, opacity;
     background: radial-gradient(circle, rgba(255, 215, 110, 0.5) 0%, rgba(244, 172, 183, 0.32) 45%, transparent 74%);
     filter: blur(6px);
 }
@@ -322,6 +328,7 @@
     z-index: 9;
     pointer-events: none;
     opacity: 0;
+    will-change: opacity;
     background: radial-gradient(circle at 50% 46%, #fffdf6 0%, rgba(255, 244, 220, 0.82) 34%, transparent 68%);
 }
 
@@ -478,9 +485,9 @@
 }
 
 @keyframes revealBloomRing {
-    0%   { opacity: 0;   scale: 0.5; }
+    0%   { opacity: 0;   transform: scale(0.5); }
     28%  { opacity: 0.9; }
-    100% { opacity: 0;   scale: 4; }
+    100% { opacity: 0;   transform: scale(4); }
 }
 
 .reveal-petal {
@@ -494,9 +501,9 @@
 }
 
 @keyframes revealPetalRise {
-    0%   { opacity: 0;    translate: 0 0;               rotate: 0deg;       scale: 0.4; }
+    0%   { opacity: 0;    transform: translate(0, 0) rotate(0deg) scale(0.4); }
     14%  { opacity: 0.95; }
-    100% { opacity: 0;    translate: var(--dx) var(--dy); rotate: var(--rot); scale: 1; }
+    100% { opacity: 0;    transform: translate(var(--dx), var(--dy)) rotate(var(--rot)) scale(1); }
 }
 
 /* ═══════════════════════════════════════════════════════
