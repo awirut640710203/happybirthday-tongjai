@@ -17,7 +17,7 @@
         || h === 'localhost' || h === '::1' || h === '[::1]'
         || /^127\./.test(h) || /^(10|192\.168|169\.254)\./.test(h)
         || /^172\.(1[6-9]|2\d|3[01])\./.test(h) || /\.local$/.test(h);
-      var v = window.__ASSET_V = dev ? 'dev' + Date.now() : '2026-08-09';
+      var v = window.__ASSET_V = dev ? 'dev' + Date.now() : '2026-08-10-production-1';
       document.write('<link rel="stylesheet" href="style.css?v=' + v + '">');
     })();
   </script>

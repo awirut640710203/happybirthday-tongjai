@@ -1520,9 +1520,17 @@ const confettiCanvas = document.getElementById('confetti');
 const cctx = confettiCanvas.getContext('2d');
 let confetti = [];
 
+/* The backing store has to be the CSS size times the display's pixel ratio,
+   or the burst renders at half resolution on a Retina panel (iPad Gen 11 is
+   @2x) and the motes come out soft. The transform then puts the context back
+   into CSS pixels, so every coordinate below — spawn point, radii, speeds —
+   stays exactly as written. Capped at 2 like every other canvas here: @3x
+   costs a lot of fill rate for no visible gain. */
 function sizeConfetti() {
-    confettiCanvas.width  = window.innerWidth;
-    confettiCanvas.height = window.innerHeight;
+    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    confettiCanvas.width  = Math.floor(window.innerWidth * dpr);
+    confettiCanvas.height = Math.floor(window.innerHeight * dpr);
+    cctx.setTransform(dpr, 0, 0, dpr, 0, 0);
 }
 sizeConfetti();
 
@@ -1618,7 +1626,9 @@ function launchConfetti() {
 }
 
 function drawConfetti(dt) {
-    cctx.clearRect(0, 0, confettiCanvas.width, confettiCanvas.height);
+    // CSS pixels, not confettiCanvas.width — the context carries the DPR
+    // transform set in sizeConfetti(), so the buffer size would over-clear.
+    cctx.clearRect(0, 0, window.innerWidth, window.innerHeight);
     if (!confetti.length) return;
 
     // frame-rate independent: damping and drift scaled by real elapsed time
