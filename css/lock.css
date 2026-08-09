@@ -133,8 +133,10 @@ body.is-locked {
         rgba(255, 255, 255, 0.55) 0deg 3deg,
         transparent 3deg 13deg
     );
-    mask-image: radial-gradient(circle, #000 0%, transparent 52%);
+    /* prefix first, standard last — whichever comes later wins the cascade,
+       and that should be the standard property where it is supported */
     -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 52%);
+    mask-image: radial-gradient(circle, #000 0%, transparent 52%);
     animation: raysSpin 34s linear infinite;
 }
 
@@ -488,8 +490,8 @@ body.is-locked {
     z-index: -1;
     border-radius: inherit;
     background: rgba(255, 255, 255, 0.66);
-    backdrop-filter: blur(28px) saturate(150%);
     -webkit-backdrop-filter: blur(28px) saturate(150%);
+    backdrop-filter: blur(28px) saturate(150%);
 }
 
 /* The entrance runs exactly once — JS drops this class when it finishes.
@@ -515,36 +517,68 @@ body.is-locked {
 
 /* Rebuilt from scratch to remove an entire class of bugs the previous
    version kept resurfacing (font-swap width races, a JS shrink-to-fit loop
-   with a broken floor, gradient text flickering over backdrop-filter): no
-   gradient fill, no shrink-to-fit JS, no em-sized icon coupled to a
-   font-size that used to change at runtime. The heart is a flex sibling
-   with its own fixed pixel size, and the text is free to wrap onto a
-   second line on a narrow panel instead of being forced onto one via JS. */
+   with a broken floor, icon sizing coupled to runtime font changes). The
+   heart is a flex sibling with its own fixed pixel size, and the text is
+   free to wrap onto a second line on a narrow panel instead of being forced
+   onto one via JS. */
 .lock-title {
     display: flex;
     align-items: center;
     justify-content: center;
     flex-wrap: wrap;
-    column-gap: 8px;
-    row-gap: 2px;
-    font-family: 'Quicksand', sans-serif;
-    font-weight: 700;
-    font-size: clamp(1rem, 3.2vw, 1.35rem);
-    line-height: 1.35;
+    column-gap: 6px;
+    row-gap: 0;
+    /* Same cursive family as "Thank You For Being You" (.finale-title) and
+       the hero name — Great Vibes ships in the same Google Fonts request as
+       Quicksand (see index.html), so this doesn't reintroduce the late-
+       loading font-swap race the earlier Playfair Display version had.
+       It only comes in one weight, so no font-weight here. */
+    font-family: var(--font-cursive, 'Great Vibes', cursive);
+    font-size: clamp(1.48rem, 4.5vw, 1.98rem);
+    line-height: 1.2;
     color: var(--g-ink);
     text-align: center;
+    overflow: visible;
     /* Reaches all the way to the pin dots on its own — .lock-sub used to
        supply this gap, but it collapses to zero height when left empty
        (no subtitle text), which was pulling the title and dots together. */
     margin-bottom: clamp(16px, 2.6vh, 24px);
 }
 
+.lock-title-text {
+    display: inline-block;
+    max-width: 100%;
+    padding: 0.2em 0.44em 0.34em 0.2em;
+    margin: -0.2em -0.4em -0.3em -0.16em;
+    color: var(--g-ink);
+    background:
+        linear-gradient(92deg,
+            #7a3154 0%,
+            #d94c86 30%,
+            #ff8fbb 52%,
+            #b79bff 78%,
+            #6f55c7 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-box-decoration-break: clone;
+    box-decoration-break: clone;
+    -webkit-text-fill-color: transparent;
+    text-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.78),
+        0 8px 22px rgba(217, 76, 134, 0.18);
+    overflow: visible;
+}
+
 .lock-title-heart {
     flex: none;
-    width: 20px;
-    height: 20px;
-    fill: var(--g-lav);
-    filter: drop-shadow(0 1px 2px rgba(214, 78, 128, 0.35));
+    width: clamp(21px, 4.2vw, 25px);
+    height: clamp(21px, 4.2vw, 25px);
+    margin-left: 3px;
+    fill: url(#lockTitleHeartGrad);
+    filter:
+        drop-shadow(0 1px 0 rgba(255, 255, 255, 0.8))
+        drop-shadow(0 4px 9px rgba(214, 78, 128, 0.32));
+    transform: translateY(2px) rotate(-5deg);
 }
 
 .lock-sub {
@@ -648,26 +682,25 @@ body.is-locked {
     100% { opacity: 0;   translate: var(--dx) var(--dy); rotate: var(--rot);   scale: 1; }
 }
 
-/* Message line reserves its height so nothing jumps */
+/* Message line reserves its height so nothing jumps. Same cursive family as
+   .lock-title/.finale-title across every state (default, error, success,
+   hint) — one font instead of switching between Quicksand and Playfair
+   Display per state. No font-weight/italic: Great Vibes loads a single
+   regular weight (see index.html's Google Fonts request), so a synthetic
+   bold or slant would just distort its connected letterforms. */
 .lock-msg {
     min-height: 1.5em;
-    font-size: clamp(0.8rem, 2.2vw, 0.9rem);
-    font-weight: 600;
+    font-family: var(--font-cursive, 'Great Vibes', cursive);
+    font-size: clamp(1.05rem, 3.2vw, 1.3rem);
+    line-height: 1.4;
     color: var(--g-ink-soft);
     margin-bottom: clamp(12px, 2vh, 18px);
     transition: color 0.25s ease;
 }
 
-.lock-msg.error   { color: #f0416a; }
-.lock-msg.success { color: #17a06a; }
-
-/* Serif italic, solid colour — no gradient-clip fill (kept simple on
-   purpose; see CHANGES.md for why). */
+.lock-msg.error,
+.lock-msg.success,
 .lock-msg.hint {
-    font-family: 'Playfair Display', serif;
-    font-weight: 700;
-    font-style: italic;
-    letter-spacing: 0.2px;
     color: var(--g-pink);
 }
 

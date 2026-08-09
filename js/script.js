@@ -116,6 +116,7 @@ document.addEventListener('DOMContentLoaded', () => {
     initLightbox();
     initScrollAnimations();
     initFireworks();
+    initFinaleParticles();
     initCursorSparkles();
     initKeyboardShortcuts();
     domReady = true;
@@ -767,23 +768,33 @@ function initLightbox() {
 /* ═══════════════════════════════════════
    🕰️ Timeline
    ═══════════════════════════════════════ */
+function getTimelineDotIcon(idx) {
+    return `
+    <svg viewBox="0 0 24 24" class="timeline-dot-svg">
+        <defs>
+            <linearGradient id="grad-heart-${idx}" x1="0%" y1="0%" x2="100%" y2="100%">
+                <stop offset="0%" stop-color="#ffb0ce" />
+                <stop offset="100%" stop-color="#ff4d6d" />
+            </linearGradient>
+        </defs>
+        <path fill="url(#grad-heart-${idx})" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+    </svg>`;
+}
+
 function initTimeline() {
     const wrapper = document.getElementById('timeline-wrapper');
     if (!wrapper) return;
 
-    CONFIG.timeline.forEach(m => {
-        const item = document.createElement('div');
-        item.className = 'timeline-item';
-        item.innerHTML = `
-            <div class="timeline-dot"></div>
+    wrapper.innerHTML = CONFIG.timeline.map((m, idx) => `
+        <article class="timeline-item">
+            <div class="timeline-dot" aria-hidden="true">${getTimelineDotIcon(idx)}</div>
             <div class="timeline-card">
                 <img src="${m.img}" alt="${m.title}" loading="lazy" decoding="async">
-                <div class="timeline-card-title">${m.title}</div>
-                <div>${m.text}</div>
+                <h3 class="timeline-card-title">${m.title}</h3>
+                <p class="timeline-card-text">${m.text}</p>
             </div>
-        `;
-        wrapper.appendChild(item);
-    });
+        </article>
+    `).join('');
 }
 
 /* ═══════════════════════════════════════
@@ -806,12 +817,19 @@ function initScrollAnimations() {
     });
 
     gsap.utils.toArray('.timeline-item').forEach((item, idx) => {
+        const dot = item.querySelector('.timeline-dot');
         gsap.from(item, {
-            scrollTrigger: { trigger: item, start: 'top 80%' },
+            scrollTrigger: { 
+                trigger: item, 
+                start: 'top 80%',
+                onEnter: () => {
+                    if (dot) dot.classList.add('is-active');
+                }
+            },
             opacity: 0,
             y: 50,
             duration: 0.8,
-            delay: idx * 0.2,
+            delay: idx * 0.18,
             clearProps: 'transform'
         });
     });
@@ -827,12 +845,14 @@ function initFireworks() {
     if (!canvas || !sec || REDUCED_MOTION) return;
 
     const ctx = canvas.getContext('2d');
-    let running = false;
+    let running = true;
     let rafId = null;
     let sparks = [];
     let rockets = [];
     let cooldown = 0;
     let size = { w: 0, h: 0 };
+
+    const TAU = Math.PI * 2;
 
     function resize() {
         size = fitCanvas(canvas, sec);
@@ -840,25 +860,19 @@ function initFireworks() {
     resize();
     window.addEventListener('resize', debounce(resize, 150));
 
-    const TAU = Math.PI * 2;
-
-    /* Pastel confetti-light palette (rose, blush, lavender, butter, sky)
-       — the finale sits on a blush background now, so saturated rainbow
-       sparks on black would read as a foreign element. */
+    /* Saturated, vibrant celebratory palette (hot rose, magenta, gold, violet, electric pink) */
     const SPARK_COLORS = [
         [217, 4, 41],     // deep rose
-        [255, 95, 138],   // pink
-        [244, 172, 183],  // rose gold
-        [226, 175, 255],  // lavender
-        [255, 215, 110],  // butter gold
-        [157, 214, 255]   // soft sky
+        [255, 42, 84],    // hot pink
+        [255, 0, 128],    // vivid magenta
+        [155, 44, 244],   // violet gold
+        [255, 177, 0],    // electric gold
+        [255, 77, 109]    // crimson rose
     ];
     const pickColor = () => SPARK_COLORS[(Math.random() * SPARK_COLORS.length) | 0];
 
-    // Nudge each spark a little off its shell's colour so a burst reads as
-    // one firework rather than a flat block of identical dots.
     function shade(rgb) {
-        const d = () => (Math.random() - 0.5) * 38;
+        const d = () => (Math.random() - 0.5) * 30;
         return [
             Math.max(0, Math.min(255, rgb[0] + d())),
             Math.max(0, Math.min(255, rgb[1] + d())),
@@ -868,9 +882,9 @@ function initFireworks() {
 
     function glowDot(x, y, radius, rgb, alpha) {
         const [r, g, b] = rgb;
-        const halo = radius * 3.2;
+        const halo = radius * 3.5;
         const grad = ctx.createRadialGradient(x, y, 0, x, y, halo);
-        grad.addColorStop(0, `rgba(${r|0},${g|0},${b|0},${alpha * 0.5})`);
+        grad.addColorStop(0, `rgba(${r|0},${g|0},${b|0},${Math.min(1, alpha * 0.8)})`);
         grad.addColorStop(1, `rgba(${r|0},${g|0},${b|0},0)`);
         ctx.globalAlpha = 1;
         ctx.fillStyle = grad;
@@ -878,17 +892,13 @@ function initFireworks() {
         ctx.arc(x, y, halo, 0, TAU);
         ctx.fill();
 
-        ctx.globalAlpha = alpha;
+        ctx.globalAlpha = Math.min(1, alpha * 1.2);
         ctx.fillStyle = `rgb(${r|0},${g|0},${b|0})`;
         ctx.beginPath();
         ctx.arc(x, y, radius, 0, TAU);
         ctx.fill();
     }
 
-    /* A burst particle thrown out along a true polar angle — the previous
-       version randomised vx/vy inside a square, which scattered a blob
-       instead of opening a round shell. Drag + gravity let each spark slow
-       and arc over the way a real firework does. */
     class Spark {
         constructor(x, y, angle, speed, rgb, life) {
             this.x = x;
@@ -898,96 +908,79 @@ function initFireworks() {
             this.rgb = rgb;
             this.life = life;
             this.maxLife = life;
-            this.radius = Math.random() * 1.4 + 1.7;
+            this.radius = Math.random() * 2.2 + 2.2;
             this.phase = Math.random() * TAU;
         }
         update() {
-            this.vx *= 0.962;          // air drag
-            this.vy *= 0.962;
-            this.vy += 0.055;          // gravity
+            this.vx *= 0.965;
+            this.vy *= 0.965;
+            this.vy += 0.05;
             this.x += this.vx;
             this.y += this.vy;
             this.life--;
         }
         draw() {
-            // Clamp at 0: update() runs before draw() and can push life
-            // negative, and Math.pow(negative, 1.25) is NaN.
-            const t = Math.max(0, this.life / this.maxLife);   // 1 → 0
-            // Gentle falloff — a squared curve dimmed the shell to a haze
-            // almost immediately against this pale background.
-            let a = Math.pow(t, 1.25);
-            // Twinkle as it dies, like real firework embers
-            if (t < 0.6) a *= 0.62 + 0.38 * Math.sin(this.phase + (1 - t) * 24);
+            const t = Math.max(0, this.life / this.maxLife);
+            let a = Math.pow(t, 1.1);
+            if (t < 0.6) a *= 0.72 + 0.28 * Math.sin(this.phase + (1 - t) * 24);
             a = Math.max(0, Math.min(1, a));
             glowDot(this.x, this.y, this.radius, this.rgb, a);
         }
         get dead() { return this.life <= 0; }
     }
 
-    /* The shell climbing to its burst height, trailing a comet tail. */
     const ROCKET_GRAVITY = 0.13;
 
     class Rocket {
         constructor() {
-            this.x = size.w * (0.14 + Math.random() * 0.72);
+            this.x = size.w * (0.12 + Math.random() * 0.76);
             this.y = size.h + 8;
-            this.targetY = size.h * (0.14 + Math.random() * 0.26);
-            // Derive the launch speed from the distance it actually has to
-            // climb (v = √(2·a·d)). A hard-coded speed can't reach the top
-            // of a tall section, and the shell would burst near the floor.
+            this.targetY = size.h * (0.12 + Math.random() * 0.32);
             const rise = Math.max(60, this.y - this.targetY);
             this.vy = -Math.sqrt(2 * ROCKET_GRAVITY * rise);
             this.rgb = pickColor();
-            this.heart = Math.random() < 0.3;
+            this.heart = Math.random() < 0.4;
             this.trail = [];
         }
         update() {
             this.trail.push({ x: this.x, y: this.y });
-            if (this.trail.length > 7) this.trail.shift();
-            this.vy += ROCKET_GRAVITY;     // slows as it climbs
+            if (this.trail.length > 8) this.trail.shift();
+            this.vy += ROCKET_GRAVITY;
             this.y += this.vy;
         }
         draw() {
-            // Stroke between the sampled points rather than dotting them —
-            // the shell covers ~13px per frame, so plain dots read as a
-            // dashed line instead of a comet tail.
             const [r, g, b] = this.rgb;
             ctx.globalAlpha = 1;
             ctx.lineCap = 'round';
             for (let i = 1; i < this.trail.length; i++) {
                 const p0 = this.trail[i - 1];
                 const p1 = this.trail[i];
-                const f = i / this.trail.length;    // tapers toward the tail
-                ctx.strokeStyle = `rgba(${r|0},${g|0},${b|0},${f * 0.5})`;
-                ctx.lineWidth = 0.6 + f * 2.4;
+                const f = i / this.trail.length;
+                ctx.strokeStyle = `rgba(${r|0},${g|0},${b|0},${f * 0.7})`;
+                ctx.lineWidth = 0.8 + f * 3.2;
                 ctx.beginPath();
                 ctx.moveTo(p0.x, p0.y);
                 ctx.lineTo(p1.x, p1.y);
                 ctx.stroke();
             }
-            glowDot(this.x, this.y, 2.5, this.rgb, 0.95);
+            glowDot(this.x, this.y, 3.2, this.rgb, 1);
         }
-        // Burst at the top of the arc, or once it has run out of climb.
         get ready() { return this.y <= this.targetY || this.vy >= -0.7; }
     }
 
     function burstRing(x, y, rgb) {
-        const count = 34 + (Math.random() * 12 | 0);
-        const base = 3.3 + Math.random() * 1.5;
+        const count = 38 + (Math.random() * 14 | 0);
+        const base = 3.6 + Math.random() * 1.6;
         for (let i = 0; i < count; i++) {
             const angle = (i / count) * TAU + Math.random() * 0.07;
-            // A little speed jitter keeps the ring from looking mechanical
             const speed = base * (0.8 + Math.random() * 0.4);
-            sparks.push(new Spark(x, y, angle, speed, shade(rgb), 56 + Math.random() * 24));
+            sparks.push(new Spark(x, y, angle, speed, shade(rgb), 58 + Math.random() * 24));
         }
     }
 
-    // Parametric heart, sampled evenly — the shell opens into a heart
-    // rather than a circle, which suits the occasion better than a
-    // generic starburst.
     function burstHeart(x, y, rgb) {
-        const count = 46;
-        const scale = (0.26 + Math.random() * 0.08);
+        const count = 52;
+        const scale = (0.28 + Math.random() * 0.08);
         for (let i = 0; i < count; i++) {
             const t = (i / count) * TAU;
             const hx = 16 * Math.pow(Math.sin(t), 3);
@@ -997,7 +990,7 @@ function initFireworks() {
                 Math.atan2(hy, hx),
                 Math.hypot(hx, hy) * scale,
                 shade(rgb),
-                64 + Math.random() * 22
+                68 + Math.random() * 22
             ));
         }
     }
@@ -1012,21 +1005,15 @@ function initFireworks() {
         rafId = null;
         if (!running || document.hidden) return;
 
-        // Fade the previous frame toward TRANSPARENT rather than painting a
-        // colour over it. Painting cream would slowly build an opaque sheet
-        // that hides the section's own gradient; destination-out just lowers
-        // alpha, so trails dissolve and the blush background stays visible.
         ctx.globalAlpha = 1;
         ctx.globalCompositeOperation = 'destination-out';
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.17)';
+        ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
         ctx.fillRect(0, 0, size.w, size.h);
         ctx.globalCompositeOperation = 'source-over';
 
-        // Space the launches out instead of rolling the dice every frame,
-        // so shells arrive in a steady rhythm rather than in clumps.
-        if (--cooldown <= 0 && rockets.length < 3) {
+        if (--cooldown <= 0 && rockets.length < 4) {
             rockets.push(new Rocket());
-            cooldown = 34 + (Math.random() * 40 | 0);
+            cooldown = 18 + (Math.random() * 25 | 0);
         }
 
         rockets = rockets.filter(r => {
@@ -1046,21 +1033,145 @@ function initFireworks() {
         rafId = requestAnimationFrame(animate);
     }
 
-    // Guard against stacking a second RAF loop on re-entry.
     function play() {
         if (running && rafId === null && !document.hidden) rafId = requestAnimationFrame(animate);
     }
 
     document.addEventListener('visibilitychange', play);
 
-    if (!window.gsap || !window.ScrollTrigger) return;
-    gsap.registerPlugin(ScrollTrigger);
-    ScrollTrigger.create({
-        trigger: '#finale',
-        start: 'top 70%',
-        onEnter: () => { running = true; play(); },
-        onLeaveBack: () => { running = false; }
-    });
+    if (typeof IntersectionObserver !== 'undefined') {
+        new IntersectionObserver(entries => {
+            running = entries[0].isIntersecting;
+            if (running) play();
+        }, { threshold: 0.01 }).observe(sec);
+    } else {
+        running = true;
+        play();
+    }
+}
+
+/* ═══════════════════════════════════════
+   🫧 Finale Background Particles (bubbles / hearts / sparkles)
+   ═══════════════════════════════════════ */
+function initFinaleParticles() {
+    const canvas = document.getElementById('bg-particles-canvas');
+    const sec = document.getElementById('finale');
+    if (!canvas || !sec || REDUCED_MOTION) return;
+
+    const ctx = canvas.getContext('2d');
+    const TAU = Math.PI * 2;
+    let size = { w: 0, h: 0 };
+    let particles = [];
+    let rafId = null;
+    let visible = true;
+
+    const PALETTE = [
+        [237, 41, 89],   // vibrant rose
+        [255, 107, 157], // hot pink
+        [155, 44, 244],  // electric purple
+        [255, 183, 3],   // gold
+        [255, 77, 109]   // crimson
+    ];
+
+    function spawn(p) {
+        p.x = Math.random() * size.w;
+        p.y = size.h + 20 + Math.random() * 60;
+        p.radius = Math.random() * 14 + 8;
+        p.speedY = -(Math.random() * 0.55 + 0.22);
+        p.sway = Math.random() * TAU;
+        p.swaySpeed = Math.random() * 0.016 + 0.006;
+        p.alpha = Math.random() * 0.4 + 0.45; // High contrast: 45%-85% opacity
+        p.type = Math.random() < 0.45 ? 'bubble' : (Math.random() < 0.55 ? 'heart' : 'sparkle');
+        p.color = PALETTE[Math.floor(Math.random() * PALETTE.length)];
+        return p;
+    }
+
+    function drawParticle(p) {
+        ctx.save();
+        ctx.translate(p.x, p.y);
+        ctx.globalAlpha = p.alpha;
+        const [r, g, b] = p.color;
+
+        if (p.type === 'bubble') {
+            const grad = ctx.createRadialGradient(0, 0, p.radius * 0.1, 0, 0, p.radius);
+            grad.addColorStop(0, `rgba(255, 255, 255, 0.8)`);
+            grad.addColorStop(0.5, `rgba(${r},${g},${b}, 0.5)`);
+            grad.addColorStop(1, `rgba(${r},${g},${b}, 0.85)`);
+            ctx.fillStyle = grad;
+            ctx.beginPath();
+            ctx.arc(0, 0, p.radius, 0, TAU);
+            ctx.fill();
+            ctx.fillStyle = 'rgba(255, 255, 255, 0.95)';
+            ctx.beginPath();
+            ctx.arc(-p.radius * 0.35, -p.radius * 0.35, p.radius * 0.22, 0, TAU);
+            ctx.fill();
+        } else if (p.type === 'heart') {
+            ctx.fillStyle = `rgba(${r},${g},${b}, 0.85)`;
+            const s = p.radius * 0.075;
+            ctx.beginPath();
+            for (let i = 0; i < 60; i++) {
+                const t = (i / 60) * TAU;
+                const hx = 16 * Math.pow(Math.sin(t), 3) * s;
+                const hy = -(13 * Math.cos(t) - 5 * Math.cos(2*t) - 2 * Math.cos(3*t) - Math.cos(4*t)) * s;
+                i === 0 ? ctx.moveTo(hx, hy) : ctx.lineTo(hx, hy);
+            }
+            ctx.closePath();
+            ctx.fill();
+        } else {
+            ctx.fillStyle = `rgba(${r},${g},${b}, 0.9)`;
+            const d = p.radius * 0.9;
+            ctx.beginPath();
+            ctx.moveTo(0, -d);
+            ctx.quadraticCurveTo(d * 0.22, -d * 0.22, d, 0);
+            ctx.quadraticCurveTo(d * 0.22, d * 0.22, 0, d);
+            ctx.quadraticCurveTo(-d * 0.22, d * 0.22, -d, 0);
+            ctx.quadraticCurveTo(-d * 0.22, -d * 0.22, 0, -d);
+            ctx.closePath();
+            ctx.fill();
+        }
+        ctx.restore();
+    }
+
+    function resize() {
+        size = fitCanvas(canvas, sec);
+        particles = Array.from({ length: 36 }, () => {
+            const p = spawn({});
+            p.y = Math.random() * size.h;
+            return p;
+        });
+    }
+
+    function animate() {
+        rafId = null;
+        if (!visible || document.hidden) return;
+        ctx.clearRect(0, 0, size.w, size.h);
+        for (const p of particles) {
+            p.sway += p.swaySpeed;
+            p.y += p.speedY;
+            p.x += Math.sin(p.sway) * 0.28;
+            if (p.y + p.radius < -20) spawn(p);
+            drawParticle(p);
+        }
+        rafId = requestAnimationFrame(animate);
+    }
+
+    function play() {
+        if (visible && rafId === null && !document.hidden) rafId = requestAnimationFrame(animate);
+    }
+
+    resize();
+    window.addEventListener('resize', debounce(resize, 150));
+    document.addEventListener('visibilitychange', play);
+
+    if (typeof IntersectionObserver !== 'undefined') {
+        new IntersectionObserver(entries => {
+            visible = entries[0].isIntersecting;
+            if (visible) play();
+        }, { threshold: 0.01 }).observe(sec);
+    } else {
+        visible = true;
+        play();
+    }
 }
 
 /* ═══════════════════════════════════════

@@ -26,9 +26,39 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/3.12.2/ScrollTrigger.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/canvas-confetti@1.6.0/dist/confetti.browser.min.js"></script>
 
-    <!-- Styles -->
-    <link rel="stylesheet" href="css/style.css?v=1">
-    <link rel="stylesheet" href="css/lock.css?v=4">
+    <!-- Styles.
+         The ?v= token decides whether an edit ever reaches the browser. A cache
+         keys on the whole URL, so a token pinned at a fixed number (this file
+         sat on ?v=1 for style.css) means a hand-edit to the CSS keeps being
+         served from cache and simply never shows up — reloading doesn't help,
+         only a cleared cache does. Locally the token is the clock, so every
+         reload reads what is actually on disk; on a real host it stays fixed so
+         a visitor still gets a cached, fast page.
+
+         document.write on purpose: it keeps the stylesheet parser-inserted and
+         render-blocking exactly like a literal <link>, so there is no flash of
+         unstyled content. Appending to <head> from script would not. -->
+    <script>
+        (function () {
+            var h = location.hostname;
+            window.__DEV_HOST = location.protocol === 'file:' || !h
+                || h === 'localhost' || h === '::1' || h === '[::1]'
+                || /^127\./.test(h)
+                || /^(10|192\.168|169\.254)\./.test(h)       // home LAN — the iPad
+                || /^172\.(1[6-9]|2\d|3[01])\./.test(h)
+                || /\.local$/.test(h);
+            var v = window.__ASSET_V = window.__DEV_HOST ? 'dev' + Date.now() : '2026-08-09';
+            document.write(
+                '<link rel="stylesheet" href="css/style.css?v=' + v + '">' +
+                '<link rel="stylesheet" href="css/lock.css?v=' + v + '">' +
+                '<link rel="stylesheet" href="css/gift-reveal.css?v=' + v + '">');
+        })();
+    </script>
+    <noscript>
+        <link rel="stylesheet" href="css/style.css">
+        <link rel="stylesheet" href="css/lock.css">
+        <link rel="stylesheet" href="css/gift-reveal.css">
+    </noscript>
 
     <!-- 😾 Warm the other mascot cats so the first wrong-code swap is instant -->
     <link rel="preload" as="image" href="assets/cats/angry-cat-2.png">
@@ -93,24 +123,28 @@
                             <svg class="bow-svg" viewBox="0 0 140 78" width="140" height="78">
                                 <defs>
                                     <linearGradient id="bowFill" x1="0" y1="0" x2="1" y2="1">
-                                        <stop offset="0%" style="stop-color:var(--g-pink-soft)" />
-                                        <stop offset="65%" style="stop-color:var(--g-pink)" />
-                                        <stop offset="100%" style="stop-color:var(--g-lav-soft)" />
+                                        <stop offset="0%" stop-color="var(--g-pink-soft)" />
+                                        <stop offset="65%" stop-color="var(--g-pink)" />
+                                        <stop offset="100%" stop-color="var(--g-lav-soft)" />
                                     </linearGradient>
                                     <linearGradient id="bowKnot" x1="0" y1="0" x2="0" y2="1">
-                                        <stop offset="0%" style="stop-color:var(--g-pink-soft)" />
-                                        <stop offset="100%" style="stop-color:var(--g-pink)" />
+                                        <stop offset="0%" stop-color="var(--g-pink-soft)" />
+                                        <stop offset="100%" stop-color="var(--g-pink)" />
                                     </linearGradient>
                                 </defs>
                                 <!-- tails, soft flowing curves tapering to a point -->
                                 <path d="M74,46 C80,56 84,67 78,78 C74,68 68,58 66,46 Z" fill="url(#bowFill)" />
                                 <path d="M66,46 C60,56 56,67 62,78 C66,68 72,58 74,46 Z" fill="url(#bowFill)" />
                                 <!-- loops, one flowing curve mirrored for exact symmetry -->
-                                <path d="M70,42 C80,20 100,6 118,10 C132,13 136,28 122,36 C108,44 86,46 70,42 Z" fill="url(#bowFill)" />
-                                <path d="M70,42 C60,20 40,6 22,10 C8,13 4,28 18,36 C32,44 54,46 70,42 Z" fill="url(#bowFill)" />
+                                <path d="M70,42 C80,20 100,6 118,10 C132,13 136,28 122,36 C108,44 86,46 70,42 Z"
+                                    fill="url(#bowFill)" />
+                                <path d="M70,42 C60,20 40,6 22,10 C8,13 4,28 18,36 C32,44 54,46 70,42 Z"
+                                    fill="url(#bowFill)" />
                                 <!-- soft loop shine -->
-                                <ellipse cx="112" cy="16" rx="9" ry="3" transform="rotate(18 112 16)" fill="rgba(255,255,255,0.55)" />
-                                <ellipse cx="28" cy="16" rx="9" ry="3" transform="rotate(-18 28 16)" fill="rgba(255,255,255,0.55)" />
+                                <ellipse cx="112" cy="16" rx="9" ry="3" transform="rotate(18 112 16)"
+                                    fill="rgba(255,255,255,0.55)" />
+                                <ellipse cx="28" cy="16" rx="9" ry="3" transform="rotate(-18 28 16)"
+                                    fill="rgba(255,255,255,0.55)" />
                                 <!-- knot, soft pill shape wrapped over the loops -->
                                 <rect x="60" y="32" width="20" height="18" rx="9" fill="url(#bowKnot)" />
                                 <ellipse cx="70" cy="34" rx="9" ry="4" fill="var(--g-lav-soft)" opacity="0.5" />
@@ -126,7 +160,16 @@
                     <h1 class="lock-title" id="lock-title">
                         <span class="lock-title-text">Enter the code to unlock your gift</span>
                         <svg class="lock-title-heart" viewBox="0 0 24 24" width="20" height="20" aria-hidden="true">
-                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                            <defs>
+                                <linearGradient id="lockTitleHeartGrad" x1="3" y1="3" x2="21" y2="21"
+                                    gradientUnits="userSpaceOnUse">
+                                    <stop offset="0%" stop-color="#ffb0ce" />
+                                    <stop offset="48%" stop-color="#ff6fa8" />
+                                    <stop offset="100%" stop-color="#b79bff" />
+                                </linearGradient>
+                            </defs>
+                            <path
+                                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                         </svg>
                     </h1>
                     <p class="lock-sub"></p>
@@ -150,10 +193,14 @@
                      Positioned relative to .lock-card-wrap so every corner
                      tracks the card exactly, however tall it grows. -->
                 <div class="cat-trio" id="cat-trio" aria-hidden="true">
-                    <img class="cat-img cat-1" src="assets/cats/angry-cat.png" alt="" width="431" height="544" decoding="async">
-                    <img class="cat-img cat-3" src="assets/cats/angry-cat-3.png" alt="" width="444" height="464" decoding="async">
-                    <img class="cat-img cat-2" src="assets/cats/angry-cat-2.png" alt="" width="208" height="373" decoding="async">
-                    <img class="cat-img cat-4" src="assets/cats/angry-cat-4.png" alt="" width="706" height="586" decoding="async">
+                    <img class="cat-img cat-1" src="assets/cats/angry-cat.png" alt="" width="431" height="544"
+                        decoding="async">
+                    <img class="cat-img cat-3" src="assets/cats/angry-cat-3.png" alt="" width="444" height="464"
+                        decoding="async">
+                    <img class="cat-img cat-2" src="assets/cats/angry-cat-2.png" alt="" width="208" height="373"
+                        decoding="async">
+                    <img class="cat-img cat-4" src="assets/cats/angry-cat-4.png" alt="" width="706" height="586"
+                        decoding="async">
                     <div class="cat-bubble" id="cat-bubble">Wrong code! 😾😼😹</div>
                 </div>
 
@@ -193,17 +240,20 @@
                 <svg class="hero-heart-icon" viewBox="0 0 24 24" aria-hidden="true">
                     <defs>
                         <linearGradient id="heroHeartGrad" x1="0" y1="0" x2="1" y2="1">
-                            <stop offset="0%" stop-color="#ffd9e6"/>
-                            <stop offset="45%" stop-color="#ff5f8a"/>
-                            <stop offset="100%" stop-color="#d90429"/>
+                            <stop offset="0%" stop-color="#ffd9e6" />
+                            <stop offset="45%" stop-color="#ff5f8a" />
+                            <stop offset="100%" stop-color="#d90429" />
                         </linearGradient>
                         <clipPath id="heroHeartClip">
-                            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                            <path
+                                d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                         </clipPath>
                     </defs>
-                    <path fill="url(#heroHeartGrad)" d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                    <path fill="url(#heroHeartGrad)"
+                        d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
                     <g clip-path="url(#heroHeartClip)">
-                        <rect class="hero-heart-shine" x="-11" y="0" width="7" height="24" fill="rgba(255,255,255,0.85)" transform="skewX(-20)"/>
+                        <rect class="hero-heart-shine" x="-11" y="0" width="7" height="24" fill="rgba(255,255,255,0.85)"
+                            transform="skewX(-20)" />
                     </g>
                 </svg>
                 <span class="hero-heart-sparkle s1" aria-hidden="true"></span>
@@ -225,7 +275,66 @@
     <section id="cake-section" class="section">
         <div class="section-inner">
             <div class="section-header">
-                <h2 class="section-title">Make A Birthday Wish! 🎂</h2>
+                <h2 class="section-title">
+                    Make A Birthday Wish!
+                    <span class="title-svg-badge cake-badge" aria-hidden="true">
+                        <svg viewBox="0 0 64 64">
+                            <defs>
+                                <linearGradient id="ck1" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#ff9ebc" />
+                                    <stop offset="100%" stop-color="#d90429" />
+                                </linearGradient>
+                                <linearGradient id="ck2" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#ffcdd9" />
+                                    <stop offset="100%" stop-color="#ff758f" />
+                                </linearGradient>
+                                <linearGradient id="ck3" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#fff" />
+                                    <stop offset="100%" stop-color="#ffe5ec" />
+                                </linearGradient>
+                                <linearGradient id="ckf" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#fffbe6" />
+                                    <stop offset="40%" stop-color="#ffd166" />
+                                    <stop offset="100%" stop-color="#ff9f1c" />
+                                </linearGradient>
+                                <filter id="ckg">
+                                    <feGaussianBlur stdDeviation="1.5" result="b" />
+                                    <feMerge>
+                                        <feMergeNode in="b" />
+                                        <feMergeNode in="SourceGraphic" />
+                                    </feMerge>
+                                </filter>
+                            </defs>
+                            <!-- plate -->
+                            <ellipse cx="32" cy="56" rx="26" ry="4" fill="#ffe5ec" opacity="0.7" />
+                            <!-- bottom tier -->
+                            <rect x="10" y="38" width="44" height="16" rx="4" fill="url(#ck1)" />
+                            <path d="M10 40 Q16 46 22 40 Q28 46 32 40 Q38 46 42 40 Q48 46 54 40 V38 H10 Z"
+                                fill="url(#ck3)" opacity="0.85" />
+                            <!-- middle tier -->
+                            <rect x="16" y="24" width="32" height="15" rx="3" fill="url(#ck2)" />
+                            <path d="M16 26 Q22 31 26 26 Q30 31 34 26 Q38 31 42 26 Q46 31 48 26 V24 H16 Z"
+                                fill="url(#ck3)" opacity="0.85" />
+                            <!-- top tier -->
+                            <rect x="22" y="14" width="20" height="11" rx="3" fill="url(#ck1)" />
+                            <path d="M22 16 Q27 20 30 16 Q33 20 36 16 Q39 20 42 16 V14 H22 Z" fill="url(#ck3)"
+                                opacity="0.85" />
+                            <!-- candles -->
+                            <rect x="27" y="5" width="2.5" height="10" rx="1" fill="#a2d2ff" />
+                            <rect x="32.5" y="3" width="2.5" height="12" rx="1" fill="#cdb4db" />
+                            <rect x="38" y="5" width="2.5" height="10" rx="1" fill="#ffc8dd" />
+                            <!-- flames -->
+                            <g filter="url(#ckg)">
+                                <ellipse cx="28.25" cy="3.5" rx="2" ry="3.2" fill="url(#ckf)" />
+                                <ellipse cx="33.75" cy="1.5" rx="2.2" ry="3.5" fill="url(#ckf)" />
+                                <ellipse cx="39.25" cy="3.5" rx="2" ry="3.2" fill="url(#ckf)" />
+                            </g>
+                            <!-- cherry -->
+                            <circle cx="32" cy="12.5" r="2.5" fill="#c9184a" />
+                            <ellipse cx="31" cy="11.5" rx="1" ry="0.6" fill="rgba(255,255,255,0.7)" />
+                        </svg>
+                    </span>
+                </h2>
             </div>
 
             <div class="gourmet-cake-wrapper">
@@ -289,8 +398,69 @@
     <section id="love-letter" class="section">
         <div class="section-inner">
             <div class="section-header">
-                <h2 class="section-title">A Special Letter For You 💌</h2>
-                <p class="section-subtitle">Tap the heart seal to open your gift 💖</p>
+                <h2 class="section-title">
+                    A Special Letter For You
+                    <span class="title-svg-badge letter-badge" aria-hidden="true">
+                        <svg viewBox="0 0 64 64">
+                            <defs>
+                                <linearGradient id="ev1" x1="0" y1="0" x2="0.3" y2="1">
+                                    <stop offset="0%" stop-color="#fff" />
+                                    <stop offset="100%" stop-color="#ffe5ec" />
+                                </linearGradient>
+                                <linearGradient id="ev2" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#ff758f" />
+                                    <stop offset="100%" stop-color="#c9184a" />
+                                </linearGradient>
+                                <linearGradient id="evf" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#ffe5ec" />
+                                    <stop offset="100%" stop-color="#ffb0ce" />
+                                </linearGradient>
+                                <filter id="evg">
+                                    <feGaussianBlur stdDeviation="1" result="b" />
+                                    <feMerge>
+                                        <feMergeNode in="b" />
+                                        <feMergeNode in="SourceGraphic" />
+                                    </feMerge>
+                                </filter>
+                            </defs>
+                            <!-- shadow -->
+                            <ellipse cx="32" cy="56" rx="24" ry="3" fill="#ffccd5" opacity="0.5" />
+                            <!-- envelope body -->
+                            <rect x="6" y="16" width="52" height="36" rx="4" fill="url(#ev1)" stroke="#ffb0ce"
+                                stroke-width="1" />
+                            <!-- inner fold lines -->
+                            <path d="M6 50 L26 33" fill="none" stroke="#ffe5ec" stroke-width="1.2" />
+                            <path d="M58 50 L38 33" fill="none" stroke="#ffe5ec" stroke-width="1.2" />
+                            <!-- flap -->
+                            <path d="M6 18 C6 16 8 16 8 16 L32 36 L56 16 C56 16 58 16 58 18 V16 H6 Z" fill="url(#evf)"
+                                stroke="#ffb0ce" stroke-width="0.8" />
+                            <!-- flap fold highlight -->
+                            <path d="M10 18 L32 34 L54 18" fill="none" stroke="#ff758f" stroke-width="1.8"
+                                stroke-linecap="round" stroke-linejoin="round" />
+                            <!-- wax seal -->
+                            <g filter="url(#evg)">
+                                <circle cx="32" cy="36" r="8" fill="url(#ev2)" />
+                                <circle cx="32" cy="36" r="6.5" fill="none" stroke="rgba(255,255,255,0.3)"
+                                    stroke-width="0.6" />
+                            </g>
+                            <!-- heart on seal -->
+                            <path
+                                d="M32 40l-1-1C28 36.6 26.5 35.3 26.5 33.5c0-1.5 1.1-2.7 2.6-2.7.8 0 1.7.4 2.2 1 .5-.6 1.4-1 2.2-1 1.5 0 2.6 1.2 2.6 2.7 0 1.8-1.5 3.1-4.5 5.5L32 40z"
+                                fill="#fff" />
+                            <!-- sparkle -->
+                            <path
+                                d="M48 14c.2 1.8 1.4 3 3.2 3.2-1.8.2-3 1.4-3.2 3.2-.2-1.8-1.4-3-3.2-3.2 1.8-.2 3-1.4 3.2-3.2z"
+                                fill="#ffd166" opacity="0.9" />
+                        </svg>
+                    </span>
+                </h2>
+                <p class="section-subtitle">
+                    Tap the heart seal to open your gift
+                    <svg class="subtitle-icon" viewBox="0 0 20 20" width="16" height="16">
+                        <path
+                            d="M10 18.35l-1.45-1.32C3.4 12.36 0 9.28 0 5.5 0 2.42 2.42 0 5.5 0c1.74 0 3.41.81 4.5 2.09C11.09.81 12.76 0 14.5 0 17.58 0 20 2.42 20 5.5c0 3.78-3.4 6.86-8.55 11.54L10 18.35z" />
+                    </svg>
+                </p>
             </div>
 
             <!-- The envelope is scenery now — only the seal is a control, so
@@ -299,8 +469,161 @@
                  second thing the visitor never asked for. -->
             <div class="envelope-clean-box" id="envelope-card">
                 <div class="envelope-flap-top"></div>
-                <div class="wax-seal-btn" id="wax-seal" role="link" tabindex="0" aria-label="Open the Galaxy Gallery">💖</div>
+                <div class="wax-seal-btn" id="wax-seal" role="link" tabindex="0" aria-label="Open the Galaxy Gallery">
+                    <svg viewBox="0 0 24 24" width="22" height="22" fill="#ffffff">
+                        <path
+                            d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z" />
+                    </svg>
+                </div>
             </div>
+
+            <div class="section-next">
+                <a href="#gift-reveal" class="journey-btn">Continue To Our Memories</a>
+            </div>
+        </div>
+    </section>
+
+    <!-- ═══════════════════════════════════
+         🎁 Section 3.5: One More Gift
+         A second chapter, same shape as the envelope above it: a control
+         (the box) that branches away to another project — flowers-for-you
+         — plus a plain "keep scrolling" path for anyone who doesn't want
+         to open it yet. Classes are prefixed `reveal-` throughout: this
+         page already loads css/lock.css, which owns `.gift`, `.gift-body`,
+         `.spark` etc. for the unlock screen's own box, and reusing those
+         names here would collide (shared @keyframes are global, not
+         scoped to a section).
+         ═══════════════════════════════════ -->
+    <section id="gift-reveal" class="section">
+        <div class="section-inner">
+            <div class="section-header">
+                <h2 class="section-title">
+                    A Gift For You
+                    <span class="title-svg-badge gift-badge" aria-hidden="true">
+                        <svg viewBox="0 0 64 64">
+                            <defs>
+                                <linearGradient id="gb1" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#ff9ebc" />
+                                    <stop offset="100%" stop-color="#d90429" />
+                                </linearGradient>
+                                <linearGradient id="gb2" x1="0" y1="0" x2="0" y2="1">
+                                    <stop offset="0%" stop-color="#ffcdd9" />
+                                    <stop offset="100%" stop-color="#ff758f" />
+                                </linearGradient>
+                                <linearGradient id="gby" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#fff3b0" />
+                                    <stop offset="50%" stop-color="#ffd166" />
+                                    <stop offset="100%" stop-color="#ff9f1c" />
+                                </linearGradient>
+                                <filter id="gbg">
+                                    <feGaussianBlur stdDeviation="1" result="b" />
+                                    <feMerge>
+                                        <feMergeNode in="b" />
+                                        <feMergeNode in="SourceGraphic" />
+                                    </feMerge>
+                                </filter>
+                            </defs>
+                            <!-- shadow -->
+                            <ellipse cx="32" cy="56" rx="20" ry="3.5" fill="#ffccd5" opacity="0.5" />
+                            <!-- box body -->
+                            <rect x="12" y="26" width="40" height="26" rx="3.5" fill="url(#gb1)" />
+                            <!-- ribbon vertical -->
+                            <rect x="29.5" y="26" width="5" height="26" fill="url(#gby)" />
+                            <!-- box lid -->
+                            <rect x="9" y="20" width="46" height="7.5" rx="2" fill="url(#gb2)" />
+                            <rect x="29.5" y="20" width="5" height="7.5" fill="url(#gby)" />
+                            <!-- ribbon bow -->
+                            <g filter="url(#gbg)">
+                                <path d="M32 20.5 C24 10 14 11.5 24.5 19.5 Z" fill="url(#gby)" />
+                                <path d="M32 20.5 C40 10 50 11.5 39.5 19.5 Z" fill="url(#gby)" />
+                                <circle cx="32" cy="20" r="3" fill="#ff9f1c" />
+                            </g>
+                            <!-- sparkles -->
+                            <path
+                                d="M12 12c.15 1.2.9 1.9 2.1 2.1-1.2.15-1.9.9-2.1 2.1-.15-1.2-.9-1.9-2.1-2.1 1.2-.15 1.9-.9 2.1-2.1z"
+                                fill="#ffd166" opacity="0.85" />
+                            <path
+                                d="M50 13c.15 1.2.9 1.9 2.1 2.1-1.2.15-1.9.9-2.1 2.1-.15-1.2-.9-1.9-2.1-2.1 1.2-.15 1.9-.9 2.1-2.1z"
+                                fill="#ffd166" opacity="0.85" />
+                        </svg>
+                    </span>
+                </h2>
+            </div>
+
+            <div class="reveal-box-wrap" id="reveal-box-wrap">
+                <!-- Rays + flash + halo are one-shot payoff layers, not part
+                     of the box itself — kept as siblings so they can sit
+                     behind (rays/halo) and above (flash) every box part
+                     without threading through .reveal-box-inner's stacking. -->
+                <div class="reveal-rays" aria-hidden="true"></div>
+                <div class="reveal-halo" aria-hidden="true"></div>
+                <div class="reveal-box" id="reveal-gift" role="link" tabindex="0" aria-label="Open your gift">
+                    <div class="reveal-box-inner">
+                        <div class="reveal-box-shadow"></div>
+                        <div class="reveal-box-glow"></div>
+                        <div class="reveal-box-burst"></div>
+                        <div class="reveal-box-burst reveal-box-burst--2"></div>
+                        <div class="reveal-box-sparkles" aria-hidden="true">
+                            <span class="reveal-spark rs1"></span>
+                            <span class="reveal-spark rs2"></span>
+                            <span class="reveal-spark rs3"></span>
+                            <span class="reveal-spark rs4"></span>
+                            <span class="reveal-spark rs5"></span>
+                        </div>
+                        <div class="reveal-box-body">
+                            <div class="reveal-box-inside"></div>
+                            <div class="reveal-box-ribbon-v"></div>
+                            <div class="reveal-box-shine"></div>
+                        </div>
+                        <div class="reveal-box-lid">
+                            <div class="reveal-box-ribbon-h"></div>
+                            <div class="reveal-box-bow">
+                                <svg class="reveal-bow-svg" viewBox="0 0 140 78" width="140" height="78"
+                                    aria-hidden="true">
+                                    <defs>
+                                        <linearGradient id="revealBowFill" x1="0" y1="0" x2="1" y2="1">
+                                            <stop offset="0%" stop-color="#ffd9df" />
+                                            <stop offset="65%" stop-color="#f4acb7" />
+                                            <stop offset="100%" stop-color="#d90429" />
+                                        </linearGradient>
+                                        <linearGradient id="revealBowKnot" x1="0" y1="0" x2="0" y2="1">
+                                            <stop offset="0%" stop-color="#ffd9df" />
+                                            <stop offset="100%" stop-color="#d90429" />
+                                        </linearGradient>
+                                    </defs>
+                                    <path d="M74,46 C80,56 84,67 78,78 C74,68 68,58 66,46 Z"
+                                        fill="url(#revealBowFill)" />
+                                    <path d="M66,46 C60,56 56,67 62,78 C66,68 72,58 74,46 Z"
+                                        fill="url(#revealBowFill)" />
+                                    <path d="M70,42 C80,20 100,6 118,10 C132,13 136,28 122,36 C108,44 86,46 70,42 Z"
+                                        fill="url(#revealBowFill)" />
+                                    <path d="M70,42 C60,20 40,6 22,10 C8,13 4,28 18,36 C32,44 54,46 70,42 Z"
+                                        fill="url(#revealBowFill)" />
+                                    <ellipse cx="112" cy="16" rx="9" ry="3" transform="rotate(18 112 16)"
+                                        fill="rgba(255,255,255,0.55)" />
+                                    <ellipse cx="28" cy="16" rx="9" ry="3" transform="rotate(-18 28 16)"
+                                        fill="rgba(255,255,255,0.55)" />
+                                    <rect x="60" y="32" width="20" height="18" rx="9" fill="url(#revealBowKnot)" />
+                                    <ellipse cx="70" cy="34" rx="9" ry="4" fill="#ffd9df" opacity="0.5" />
+                                    <rect x="69" y="35" width="2" height="12" rx="1" fill="rgba(255,255,255,0.5)" />
+                                </svg>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="reveal-bloom-layer" id="reveal-bloom-layer" aria-hidden="true"></div>
+                <div class="reveal-flash" aria-hidden="true"></div>
+            </div>
+
+            <p class="section-subtitle reveal-hint" id="reveal-hint">
+                Tap the box to open it
+                <svg class="reveal-hint-icon" viewBox="0 0 24 24" width="18" height="18" fill="none"
+                    stroke="#ff4d6d" stroke-width="2">
+                    <path
+                        d="M20 12v10H4V12M2 7h20v5H2zM12 22V7M12 7H7.5a3.5 3.5 0 0 1 0-7C11 0 12 7 12 7zM12 7h4.5a3.5 3.5 0 0 0 0-7C13 0 12 7 12 7z" />
+                </svg>
+            </p>
+            <p class="reveal-status" id="reveal-status" role="status" aria-live="polite"></p>
 
             <div class="section-next">
                 <a href="#gallery" class="journey-btn">Continue To Our Memories</a>
@@ -314,7 +637,63 @@
     <section id="gallery" class="section">
         <div class="section-inner">
             <div class="section-header">
-                <h2 class="section-title">Our Precious Memories 📸</h2>
+                <h2 class="section-title">
+                    Our Precious Memories
+                    <span class="title-svg-badge camera-badge" aria-hidden="true">
+                        <svg viewBox="0 0 64 64">
+                            <defs>
+                                <linearGradient id="pGrad1" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#a2d2ff" />
+                                    <stop offset="100%" stop-color="#ffccd5" />
+                                </linearGradient>
+                                <linearGradient id="pGrad2" x1="0" y1="0" x2="1" y2="1">
+                                    <stop offset="0%" stop-color="#ffb0ce" />
+                                    <stop offset="100%" stop-color="#ff758f" />
+                                </linearGradient>
+                                <filter id="polGlow" x="-20%" y="-20%" width="140%" height="140%">
+                                    <feDropShadow dx="0" dy="3" stdDeviation="2.5" flood-color="#ff758f"
+                                        flood-opacity="0.3" />
+                                </filter>
+                            </defs>
+                            <!-- shadow -->
+                            <ellipse cx="32" cy="56" rx="22" ry="3" fill="#ffccd5" opacity="0.4" />
+
+                            <!-- Polaroid 1 (Left, Under) -->
+                            <g transform="rotate(-12 26 35)" filter="url(#polGlow)">
+                                <!-- Photo Frame -->
+                                <rect x="10" y="17" width="28" height="34" rx="1.5" fill="#ffffff" stroke="#ffccd5"
+                                    stroke-width="0.5" />
+                                <!-- Photo Area -->
+                                <rect x="12" y="19" width="24" height="22" fill="url(#pGrad1)" />
+                                <!-- Heart in Photo -->
+                                <path
+                                    d="M24 30.5l-.6-.5c-2-1.9-3.4-3.4-3.4-5 0-1.4 1-2.4 2.4-2.4.8 0 1.5.3 2 .9.5-.6 1.2-.9 2-.9 1.4 0 2.4 1 2.4 2.4 0 1.6-1.4 3.1-3.4 5l-.6.5z"
+                                    fill="#ffffff" opacity="0.85" />
+                            </g>
+
+                            <!-- Polaroid 2 (Right, Over) -->
+                            <g transform="rotate(10 38 32)" filter="url(#polGlow)">
+                                <!-- Photo Frame -->
+                                <rect x="24" y="14" width="28" height="34" rx="1.5" fill="#ffffff" stroke="#ffccd5"
+                                    stroke-width="0.5" />
+                                <!-- Photo Area -->
+                                <rect x="26" y="16" width="24" height="22" fill="url(#pGrad2)" />
+                                <!-- Heart in Photo -->
+                                <path
+                                    d="M38 27.5l-.6-.5c-2-1.9-3.4-3.4-3.4-5 0-1.4 1-2.4 2.4-2.4.8 0 1.5.3 2 .9.5-.6 1.2-.9 2-.9 1.4 0 2.4 1 2.4 2.4 0 1.6-1.4 3.1-3.4 5l-.6.5z"
+                                    fill="#ffffff" />
+                            </g>
+
+                            <!-- Sparkles around -->
+                            <path
+                                d="M9 14c.1 1 .6 1.5 1.5 1.6-1 .1-1.5.6-1.6 1.5-.1-1-.6-1.5-1.5-1.6 1-.1 1.5-.6 1.6-1.5z"
+                                fill="#ffd166" opacity="0.9" />
+                            <path
+                                d="M54 13c.1 1 .6 1.5 1.5 1.6-1 .1-1.5.6-1.6 1.5-.1-1-.6-1.5-1.5-1.6 1-.1 1.5-.6 1.6-1.5z"
+                                fill="#ffd166" opacity="0.9" />
+                        </svg>
+                    </span>
+                </h2>
             </div>
             <div class="polaroid-grid" id="polaroid-grid">
                 <!-- Dynamic Polaroids -->
@@ -328,9 +707,14 @@
 
     <!-- Lightbox -->
     <div id="lightbox" class="lightbox">
-        <button class="lightbox-close" id="lightbox-close">✕</button>
+        <button class="lightbox-close" id="lightbox-close" type="button" aria-label="Close photo">✕</button>
         <div class="lightbox-content">
-            <img src="" alt="Full size photo">
+            <!-- No src attribute at all until a polaroid is tapped: src="" is not
+                 "no image", it resolves to the page itself, so the browser
+                 fetches this whole document as an image and logs a failure
+                 before anyone has clicked anything. close() below removes the
+                 attribute again rather than blanking it, for the same reason. -->
+            <img alt="">
         </div>
     </div>
 
@@ -346,15 +730,15 @@
                         <svg viewBox="0 0 24 24" fill="none">
                             <defs>
                                 <linearGradient id="titleSparkGrad" x1="0" y1="0" x2="1" y2="1">
-                                    <stop offset="0%" stop-color="#ffd76e"/>
-                                    <stop offset="55%" stop-color="#ff5f8a"/>
-                                    <stop offset="100%" stop-color="#d90429"/>
+                                    <stop offset="0%" stop-color="#ffd76e" />
+                                    <stop offset="55%" stop-color="#ff5f8a" />
+                                    <stop offset="100%" stop-color="#d90429" />
                                 </linearGradient>
                             </defs>
                             <path class="spark-lg" fill="url(#titleSparkGrad)"
-                                  d="M12 2c.5 4.7 2.8 7 7.5 7.5-4.7.5-7 2.8-7.5 7.5-.5-4.7-2.8-7-7.5-7.5C9.2 9 11.5 6.7 12 2z"/>
+                                d="M12 2c.5 4.7 2.8 7 7.5 7.5-4.7.5-7 2.8-7.5 7.5-.5-4.7-2.8-7-7.5-7.5C9.2 9 11.5 6.7 12 2z" />
                             <path class="spark-sm" fill="url(#titleSparkGrad)"
-                                  d="M18.5 15c.25 2.3 1.4 3.4 3.5 3.7-2.1.3-3.25 1.4-3.5 3.7-.25-2.3-1.4-3.4-3.5-3.7 2.1-.3 3.25-1.4 3.5-3.7z"/>
+                                d="M18.5 15c.25 2.3 1.4 3.4 3.5 3.7-2.1.3-3.25 1.4-3.5 3.7-.25-2.3-1.4-3.4-3.5-3.7 2.1-.3 3.25-1.4 3.5-3.7z" />
                         </svg>
                     </span>
                 </h2>
@@ -373,9 +757,146 @@
          🌌 Section 7: Grand Finale
          ═══════════════════════════════════ -->
     <section id="finale" class="section">
+        <div class="finale-bg-decorations" aria-hidden="true">
+            <span class="f-bubble b1"></span>
+            <span class="f-bubble b2"></span>
+            <span class="f-bubble b3"></span>
+            <span class="f-bubble b4"></span>
+            <div class="f-element h1">
+                <svg viewBox="0 0 32 32" class="luxe-svg-badge">
+                    <defs>
+                        <linearGradient id="luxeHeartGrad1" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#ffb3c6" />
+                            <stop offset="50%" stop-color="#ff4d6d" />
+                            <stop offset="100%" stop-color="#c9184a" />
+                        </linearGradient>
+                        <filter id="glow1" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#ff4d6d" flood-opacity="0.45" />
+                        </filter>
+                    </defs>
+                    <path fill="url(#luxeHeartGrad1)" filter="url(#glow1)"
+                        d="M16 28.5l-2.3-2.1C5.5 18.9 1 14.8 1 9.5 1 5.2 4.3 2 8.5 2c2.4 0 4.7 1.1 6.2 2.9C16.2 3.1 18.5 2 20.9 2 25.1 2 28.5 5.2 28.5 9.5c0 5.3-4.5 9.4-12.7 16.9L16 28.5z" />
+                    <path fill="rgba(255,255,255,0.55)"
+                        d="M8.5 4c-2.8 0-5 2.1-5 4.8 0 1.5.7 3.2 2.2 5.1L15 22.8c-.8-.7-1.7-1.4-2.5-2.2L4.5 12.3C3.5 11 3 9.8 3 8.8c0-3.3 2.5-5.8 5.8-5.8 1.8 0 3.5.8 4.7 2.2l.5.6-.5-.6C12.3 4.2 10.4 4 8.5 4z" />
+                </svg>
+            </div>
+            <div class="f-element h2">
+                <svg viewBox="0 0 32 32" class="luxe-svg-badge">
+                    <defs>
+                        <linearGradient id="blossomGrad" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#ffe5ec" />
+                            <stop offset="100%" stop-color="#ff758f" />
+                        </linearGradient>
+                        <filter id="glow2" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#ff758f" flood-opacity="0.45" />
+                        </filter>
+                    </defs>
+                    <g fill="url(#blossomGrad)" filter="url(#glow2)">
+                        <path
+                            d="M16 3c1.8 0 3.2 2.2 2.2 4.2-.8 1.6-2.2 2.8-2.2 2.8s-1.4-1.2-2.2-2.8C12.8 5.2 14.2 3 16 3z" />
+                        <path
+                            d="M28.4 12c.6 1.7-.8 3.8-2.9 3.8-1.8 0-3.4-.6-3.4-.6s.6-1.7 1.6-3.2c1-1.5 4.1-1.7 4.7 0z" />
+                        <path
+                            d="M23.6 26.5c-1.5 1-3.9 0-4.3-2.1-.4-1.8.2-3.5.2-3.5s1.8.4 3.3 1.4c1.5 1 2.3 3.2.8 4.2z" />
+                        <path
+                            d="M8.4 26.5c-1.5-1-.7-3.2.8-4.2 1.5-1 3.3-1.4 3.3-1.4s.6 1.7.2 3.5c-.4 2.1-2.8 3.1-4.3 2.1z" />
+                        <path
+                            d="M3.6 12c.6-1.7 3.7-1.5 4.7 0 1 1.5 1.6 3.2 1.6 3.2s-1.6.6-3.4.6c-2.1 0-3.5-2.1-2.9-3.8z" />
+                    </g>
+                    <circle cx="16" cy="16" r="3.2" fill="#ffd166" />
+                </svg>
+            </div>
+            <div class="f-element h3">
+                <svg viewBox="0 0 32 32" class="luxe-svg-badge">
+                    <defs>
+                        <linearGradient id="goldSparkleGrad" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#fff3b0" />
+                            <stop offset="50%" stop-color="#ffd166" />
+                            <stop offset="100%" stop-color="#ffb703" />
+                        </linearGradient>
+                        <filter id="glow3" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#ffb703" flood-opacity="0.5" />
+                        </filter>
+                    </defs>
+                    <path fill="url(#goldSparkleGrad)" filter="url(#glow3)"
+                        d="M16 2c.8 8 6.4 13.6 14.4 14.4-8 .8-13.6 6.4-14.4 14.4-.8-8-6.4-13.6-14.4-14.4C9.6 15.6 15.2 10 16 2z" />
+                    <circle cx="16" cy="16" r="2.5" fill="#ffffff" opacity="0.95" />
+                </svg>
+            </div>
+            <div class="f-element h4">
+                <svg viewBox="0 0 36 32" class="luxe-svg-badge">
+                    <defs>
+                        <linearGradient id="twinHeart1" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#e2afff" />
+                            <stop offset="100%" stop-color="#b79bff" />
+                        </linearGradient>
+                        <linearGradient id="twinHeart2" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#ffb0ce" />
+                            <stop offset="100%" stop-color="#ff4d6d" />
+                        </linearGradient>
+                        <filter id="glow4" x="-20%" y="-20%" width="140%" height="140%">
+                            <feDropShadow dx="0" dy="4" stdDeviation="3" flood-color="#ff4d6d" flood-opacity="0.4" />
+                        </filter>
+                    </defs>
+                    <path fill="url(#twinHeart1)"
+                        d="M11 22l-1.5-1.4C4.5 16 1 12.8 1 8.8c0-3.3 2.5-5.8 5.8-5.8 1.8 0 3.6.8 4.7 2.2C12.6 3.8 14.4 3 16.2 3 19.5 3 22 5.5 22 8.8c0 4-3.5 7.2-8.5 11.8L11 22z"
+                        transform="translate(0, 4) scale(0.85)" />
+                    <path fill="url(#twinHeart2)" filter="url(#glow4)"
+                        d="M16 25l-1.7-1.5C7.3 17.2 3 13.6 3 9 3 5.3 5.8 2.5 9.5 2.5c2.1 0 4.1.9 5.5 2.5 1.4-1.6 3.4-2.5 5.5-2.5 3.7 0 6.5 2.8 6.5 6.5 0 4.6-4.3 8.2-11.3 14.5L16 25z"
+                        transform="translate(8, 0) scale(0.85)" />
+                </svg>
+            </div>
+        </div>
+        <canvas id="bg-particles-canvas"></canvas>
         <canvas id="fireworks-canvas"></canvas>
         <div class="finale-content">
-            <h2 class="finale-title">Thank You For Being You 💖</h2>
+            <h2 class="finale-title">
+                Thank You For Being You
+                <span class="title-svg-badge finale-heart-badge" aria-hidden="true">
+                    <svg viewBox="0 0 64 64">
+                        <defs>
+                            <linearGradient id="fh1" x1="0" y1="0" x2="0.5" y2="1">
+                                <stop offset="0%" stop-color="#ffb3c6" />
+                                <stop offset="40%" stop-color="#ff4d6d" />
+                                <stop offset="100%" stop-color="#a4133c" />
+                            </linearGradient>
+                            <linearGradient id="fh2" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#fff3b0" />
+                                <stop offset="100%" stop-color="#ffd166" />
+                            </linearGradient>
+                            <linearGradient id="fh3" x1="0" y1="0" x2="1" y2="1">
+                                <stop offset="0%" stop-color="#e2afff" />
+                                <stop offset="100%" stop-color="#b79bff" />
+                            </linearGradient>
+                            <filter id="fhg">
+                                <feGaussianBlur stdDeviation="1.8" result="b" />
+                                <feMerge>
+                                    <feMergeNode in="b" />
+                                    <feMergeNode in="SourceGraphic" />
+                                </feMerge>
+                            </filter>
+                        </defs>
+                        <g filter="url(#fhg)">
+                            <!-- main heart -->
+                            <path fill="url(#fh1)"
+                                d="M32 56l-4.5-4.1C11 37.7 2 29.4 2 19.2 2 10.7 8.7 4 17.2 4c4.7 0 9.2 2.2 12.2 5.6C32.4 6.2 36.9 4 41.6 4 50.1 4 56.8 10.7 56.8 19.2c0 10.2-9 18.5-25.5 32.7L32 56z" />
+                            <!-- 3D highlight -->
+                            <path fill="rgba(255,255,255,0.5)"
+                                d="M17.2 7C11 7 5.5 12.2 5.5 19c0 3 1.2 6.2 4 10l13 13.5c-1.5-1.5-3-2.8-4.5-4.2L7.5 25C5.5 22.5 4.5 20 4.5 17.5 4.5 11 9.8 6 17 6c3.5 0 6.7 1.5 9 4l1 1.2-1-1.2C23.7 7.8 20.4 7 17.2 7z" />
+                        </g>
+                        <!-- sparkle left -->
+                        <path fill="url(#fh3)"
+                            d="M8 10c.3 2.2 1.6 3.5 3.8 3.8-2.2.3-3.5 1.6-3.8 3.8-.3-2.2-1.6-3.5-3.8-3.8 2.2-.3 3.5-1.6 3.8-3.8z" />
+                        <!-- sparkle right -->
+                        <path fill="url(#fh2)"
+                            d="M50 8c.4 3 2.2 4.8 5.2 5.2-3 .4-4.8 2.2-5.2 5.2-.4-3-2.2-4.8-5.2-5.2 3-.4 4.8-2.2 5.2-5.2z" />
+                        <!-- tiny sparkle -->
+                        <path fill="url(#fh2)"
+                            d="M55 26c.15 1.2.9 1.9 2.1 2.1-1.2.15-1.9.9-2.1 2.1-.15-1.2-.9-1.9-2.1-2.1 1.2-.15 1.9-.9 2.1-2.1z"
+                            opacity="0.7" />
+                    </svg>
+                </span>
+            </h2>
             <p class="finale-message">
                 Every laugh, every conversation, and every moment we've spent together means the world to me.
                 Thank you so much for being in my life and for always filling it with positivity and brightness.
@@ -388,9 +909,18 @@
         </div>
     </section>
 
-    <!-- Scripts (script.js first: it exposes startLandingExperience for the gate) -->
-    <script src="js/script.js?v=1"></script>
-    <script src="js/lock.js?v=3"></script>
+    <!-- Scripts (script.js first: it exposes startLandingExperience for the gate).
+         Same versioning story as the stylesheets above — and document.write for
+         the same reason plus one more: script.js hangs its whole boot on
+         DOMContentLoaded. A script appended from JS is not parser-inserted, so
+         DOMContentLoaded can fire before it ever runs and the listener would
+         never see it. Written into the parser, order and timing both hold. -->
+    <script>
+        document.write(
+            '<script src="js/script.js?v=' + window.__ASSET_V + '"><\/script>' +
+            '<script src="js/lock.js?v=' + window.__ASSET_V + '"><\/script>' +
+            '<script src="js/gift-reveal.js?v=' + window.__ASSET_V + '"><\/script>');
+    </script>
 </body>
 
 </html>

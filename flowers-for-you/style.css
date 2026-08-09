@@ -58,6 +58,7 @@ body {
     user-select: none;
     -webkit-tap-highlight-color: transparent;
     -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
 /* ══════════════════════════════════════════════════════════════════════
@@ -298,6 +299,9 @@ body {
     box-shadow: 0 6px 16px rgba(217, 4, 41, .14);
     transition: transform .32s cubic-bezier(.34, 1.56, .64, 1), box-shadow .3s ease, color .3s ease;
     -webkit-tap-highlight-color: transparent;
+    /* #btnHome is an <a>, not a <button> — everything above already applies
+       to it identically, this is the one thing an anchor needs on top */
+    text-decoration: none;
 }
 
 .hud-btn svg {

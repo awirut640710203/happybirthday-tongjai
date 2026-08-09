@@ -17,7 +17,7 @@ Drop your artwork here, named by slot number:
 - Want a caption under the number? Add it in `main.js`:
 
   ```js
-  captions: { 1: 'Su sonrisa', 7: 'Nuestro viaje' }
+  captions: { 1: 'Her smile', 7: 'Our trip' }
   ```
 
 - More or fewer than 12? Change `CONFIG.photos.count` and the `rings` array.

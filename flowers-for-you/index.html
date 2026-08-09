@@ -12,7 +12,22 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet"
     href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Playfair+Display:ital,wght@0,400;0,500;1,400&family=Quicksand:wght@400;500;600&display=swap">
-  <link rel="stylesheet" href="style.css">
+  <!-- style.css / main.js carry a ?v= token that is the clock on a dev host, so
+       a hand-edit shows up on the next reload instead of being served from a
+       stale cache; a real host keeps a fixed token so visitors still cache.
+       See index.html at the project root for the long version of why. -->
+  <script>
+    (function () {
+      var h = location.hostname;
+      var dev = location.protocol === 'file:' || !h
+        || h === 'localhost' || h === '::1' || h === '[::1]'
+        || /^127\./.test(h) || /^(10|192\.168|169\.254)\./.test(h)
+        || /^172\.(1[6-9]|2\d|3[01])\./.test(h) || /\.local$/.test(h);
+      var v = window.__ASSET_V = dev ? 'dev' + Date.now() : '2026-08-09';
+      document.write('<link rel="stylesheet" href="style.css?v=' + v + '">');
+    })();
+  </script>
+  <noscript><link rel="stylesheet" href="style.css"></noscript>
 </head>
 
 <body>
@@ -62,9 +77,21 @@
         <path d="M6.8 7.5 7.7 19a1.6 1.6 0 0 0 1.6 1.5h5.4a1.6 1.6 0 0 0 1.6-1.5l.9-11.5" />
       </svg>
     </button>
+    <!-- Plain link, not a button — works even if main.js never runs. Kept
+         in the same pill as the other controls (matching galaxy-gallery's
+         HUD, which mixes in-scene actions with the way out) rather than a
+         separate corner button, since this page had no exit before. -->
+    <a class="hud-btn" id="btnHome" href="../index.html" aria-label="Back to Home" title="Back to Home">
+      <svg viewBox="0 0 24 24" aria-hidden="true" fill="none" stroke="currentColor" stroke-width="1.7"
+        stroke-linecap="round" stroke-linejoin="round">
+        <path d="M3 11.5 12 4l9 7.5" />
+        <path
+          d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9" />
+      </svg>
+    </a>
   </nav>
 
-  <script src="main.js"></script>
+  <script>document.write('<script src="main.js?v=' + window.__ASSET_V + '"><\/script>');</script>
 </body>
 
 </html>

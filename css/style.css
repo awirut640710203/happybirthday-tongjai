@@ -49,6 +49,7 @@ body {
     overflow-x: hidden;
     line-height: 1.6;
     -webkit-text-size-adjust: 100%;
+    text-size-adjust: 100%;
 }
 
 /* Freeze the page behind the letter modal / lightbox */
@@ -85,12 +86,19 @@ body.overlay-open {
     gap: 10px;
     padding: 12px 24px;
     background: rgba(255, 255, 255, 0.88);
+    /* Safari only grew unprefixed backdrop-filter in 18; every other stylesheet
+       here already carries the prefix, this file was the one that missed it. */
+    -webkit-backdrop-filter: blur(15px);
     backdrop-filter: blur(15px);
     border: 1.5px solid var(--glass-border);
     border-radius: 50px;
     box-shadow: 0 8px 30px rgba(217, 4, 41, 0.15);
     cursor: pointer;
     transition: all 0.35s var(--transition-bounce);
+    /* WebKit still has no unprefixed user-select at all (verified:
+       CSS.supports('user-select','none') is false) — without this a long
+       press on the iPad selects the label and pops the callout menu. */
+    -webkit-user-select: none;
     user-select: none;
 }
 
@@ -162,6 +170,7 @@ body.overlay-open {
    ═══════════════════════════════════════ */
 #cake-section,
 #love-letter,
+#gift-reveal,
 #gallery,
 #timeline {
     background: radial-gradient(circle at 50% 35%, #fff0f3 0%, #fbe4e8 52%, #f3d5dc 100%);
@@ -170,6 +179,7 @@ body.overlay-open {
 /* Soft colour orbs — the same family as .landing-glow */
 #cake-section::before,
 #love-letter::before,
+#gift-reveal::before,
 #gallery::before,
 #timeline::before {
     content: '';
@@ -197,6 +207,7 @@ body.overlay-open {
    seamlessly. transform (not background-position) so it composites. */
 #cake-section::after,
 #love-letter::after,
+#gift-reveal::after,
 #gallery::after,
 #timeline::after {
     content: '';
@@ -230,16 +241,18 @@ body.overlay-open {
    related rather than copy-pasted. */
 #cake-section::before  { --orb-a: 18% 24%; --orb-b: 82% 70%; --orb-c: 58% 10%; }
 #love-letter::before   { --orb-a: 76% 26%; --orb-b: 20% 72%; --orb-c: 46% 12%; animation-delay: -5s; }
+#gift-reveal::before   { --orb-a: 24% 70%; --orb-b: 80% 30%; --orb-c: 50% 92%; animation-delay: -8s; }
 #gallery::before       { --orb-a: 28% 74%; --orb-b: 74% 22%; --orb-c: 52% 90%; animation-delay: -11s; }
 #timeline::before      { --orb-a: 84% 60%; --orb-b: 16% 30%; --orb-c: 50% 8%;  animation-delay: -16s; }
 
-#love-letter::after { animation-delay: -8s; }
-#gallery::after     { animation-delay: -17s; }
-#timeline::after    { animation-delay: -25s; }
+#love-letter::after  { animation-delay: -8s; }
+#gift-reveal::after  { animation-delay: -12s; }
+#gallery::after      { animation-delay: -17s; }
+#timeline::after     { animation-delay: -25s; }
 
 @media (prefers-reduced-motion: reduce) {
-    #cake-section::before, #love-letter::before, #gallery::before, #timeline::before,
-    #cake-section::after,  #love-letter::after,  #gallery::after,  #timeline::after {
+    #cake-section::before, #love-letter::before, #gift-reveal::before, #gallery::before, #timeline::before,
+    #cake-section::after,  #love-letter::after,  #gift-reveal::after,  #gallery::after,  #timeline::after {
         animation: none;
     }
 }
@@ -250,17 +263,26 @@ body.overlay-open {
 }
 
 .section-title {
-    font-family: var(--font-heading);
-    font-size: clamp(2.2rem, 5vw, 3.4rem);
+    /* Same cursive family as .finale-title/.landing-title ("Thank You For
+       Being You" / "Happy Birthday Tongjai") — Great Vibes loads in the same
+       Google Fonts request as the rest of the type (see index.html), so this
+       doesn't add a separate font fetch. No font-weight override: like every
+       other heading on the page already using this font, the single loaded
+       weight renders fine under the h2 default bold. Sized up and given more
+       line-height than the old serif needed — a script face reads smaller
+       than a serif at the same point size. */
+    font-family: var(--font-cursive);
+    font-size: clamp(2.4rem, 5.8vw, 3.9rem);
+    line-height: 1.5;
     color: var(--deep-rose);
     margin-bottom: 0.6rem;
-    line-height: 1.2;
 }
 
 .section-subtitle {
-    font-size: clamp(1rem, 2.5vw, 1.2rem);
+    font-family: var(--font-cursive);
+    font-size: clamp(1.3rem, 3.4vw, 1.7rem);
+    line-height: 1.4;
     color: var(--text-muted);
-    font-weight: 500;
 }
 
 /* Minimal twin-sparkle accent used in place of an emoji in a section
@@ -271,6 +293,13 @@ body.overlay-open {
     height: 0.78em;
     margin-left: 0.18em;
     vertical-align: baseline;
+}
+
+.subtitle-icon {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 3px;
+    fill: #ff4d6d;
 }
 
 .title-spark svg {
@@ -506,12 +535,14 @@ body.overlay-open {
 .journey-btn {
     display: inline-flex;
     align-items: center;
+    justify-content: center;
     gap: 8px;
-    padding: clamp(14px, 2.4vh, 19px) clamp(30px, 4.6vw, 42px);
-    font-family: var(--font-body);
-    font-size: clamp(0.95rem, 2vw, 1.08rem);
-    font-weight: 600;
-    letter-spacing: 0.2px;
+    padding: clamp(13px, 2.2vh, 18px) clamp(30px, 4.6vw, 42px);
+    font-family: var(--font-cursive);
+    font-size: clamp(1.55rem, 3.4vw, 2.15rem);
+    line-height: 1.2;
+    font-weight: 400;
+    letter-spacing: 0;
     color: var(--white);
     background: linear-gradient(135deg, var(--deep-rose), #ff4d6d);
     border: none;
@@ -551,15 +582,8 @@ body.overlay-open {
     left: 130%;
 }
 
-/* A minimal arrow stands in for the emoji that used to close out every
-   label — nudges forward on hover as the only "go" cue needed. */
 .journey-btn::after {
-    content: '\2192';
-    display: inline-block;
-    transition: transform 0.35s var(--transition-bounce);
-}
-.journey-btn:hover::after {
-    transform: translateX(4px);
+    content: none;
 }
 
 /* Shared wrapper for the "continue to next section" CTAs */
@@ -806,6 +830,7 @@ body.overlay-open {
     margin-top: 3rem;
     /* This one is a press-and-hold action, not a "go forward" tap —
        the shared arrow affordance would send the wrong signal here. */
+    -webkit-user-select: none;
     user-select: none;
     touch-action: manipulation;
 }
@@ -860,9 +885,11 @@ body.overlay-open {
 
 .blow-btn-hint {
     margin-top: 0.9rem;
-    font-family: var(--font-body);
-    font-size: 0.9rem;
-    color: var(--text-muted);
+    font-family: var(--font-cursive);
+    font-size: clamp(1.25rem, 3vw, 1.65rem);
+    line-height: 1.3;
+    color: var(--deep-rose);
+    text-shadow: 0 2px 8px rgba(244, 172, 183, 0.2);
     min-height: 1.4em;
 }
 
@@ -876,17 +903,58 @@ body.overlay-open {
 .envelope-clean-box {
     position: relative;
     width: 100%;
-    max-width: 480px;
-    height: 280px;
-    background: linear-gradient(145deg, #fff5f7, #f7e1e6);
-    border: 2.5px solid var(--rose-gold);
-    border-radius: 24px;
-    box-shadow: 0 20px 50px rgba(217, 4, 41, 0.15);
+    max-width: 560px;
+    height: clamp(270px, 36vw, 330px);
+    background:
+        radial-gradient(circle at 18% 18%, rgba(255, 255, 255, 0.95) 0 9%, transparent 27%),
+        linear-gradient(145deg, #fff9fb 0%, #ffe9ef 45%, #f7d6df 100%);
+    border: 1px solid rgba(255, 255, 255, 0.9);
+    border-radius: 34px;
+    box-shadow:
+        0 32px 70px rgba(217, 4, 41, 0.16),
+        0 10px 22px rgba(150, 62, 100, 0.08),
+        inset 0 1px 0 rgba(255, 255, 255, 0.95);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
     overflow: hidden;
+    isolation: isolate;
+}
+
+.envelope-clean-box::before,
+.envelope-clean-box::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+}
+
+/* Front pocket: two folded sheets meeting below the seal, with a soft
+   centre crease so the envelope reads as paper rather than a flat rectangle. */
+.envelope-clean-box::before {
+    z-index: 2;
+    background:
+        linear-gradient(33deg, transparent 0 49.4%, rgba(231, 118, 151, 0.34) 49.7%, transparent 50.2%),
+        linear-gradient(-33deg, transparent 0 49.4%, rgba(231, 118, 151, 0.28) 49.7%, transparent 50.2%),
+        linear-gradient(32deg, #fff6f8 0 49.6%, transparent 49.8%) left bottom / 50.2% 73% no-repeat,
+        linear-gradient(-32deg, #ffeef3 0 49.6%, transparent 49.8%) right bottom / 50.2% 73% no-repeat,
+        linear-gradient(180deg, rgba(255, 255, 255, 0.58), rgba(255, 220, 230, 0.12));
+}
+
+/* Decorative stitched rim and a faint paper grain. */
+.envelope-clean-box::after {
+    z-index: 5;
+    inset: 10px;
+    border-radius: 26px;
+    border: 1.5px solid rgba(244, 172, 183, 0.78);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.65),
+        inset 0 -18px 34px rgba(255, 143, 187, 0.12);
+    background:
+        repeating-linear-gradient(90deg, rgba(255, 255, 255, 0.14) 0 1px, transparent 1px 15px),
+        repeating-linear-gradient(0deg, rgba(255, 255, 255, 0.1) 0 1px, transparent 1px 17px);
+    opacity: 0.9;
 }
 
 /* No :hover lift and no pointer cursor — the envelope is scenery, and
@@ -898,10 +966,36 @@ body.overlay-open {
     top: 0;
     left: 0;
     width: 100%;
-    height: 55%;
-    background: linear-gradient(145deg, #fce0e6, #f3cad3);
-    clip-path: polygon(0 0, 50% 100%, 100% 0);
-    z-index: 4;
+    height: 62%;
+    background:
+        linear-gradient(180deg, rgba(255, 255, 255, 0.42), transparent 38%),
+        linear-gradient(145deg, #ffdce5 0%, #f8bfcd 54%, #f2a9bc 100%);
+    clip-path: polygon(4% 0, 96% 0, 50% 92%);
+    z-index: 3;
+    filter: drop-shadow(0 12px 16px rgba(174, 66, 105, 0.12));
+}
+
+.envelope-flap-top::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(ellipse at 50% 12%, rgba(255, 255, 255, 0.5), transparent 34%),
+        linear-gradient(180deg, rgba(255, 255, 255, 0.18), transparent 58%);
+    clip-path: inherit;
+}
+
+.envelope-flap-top::after {
+    content: '';
+    position: absolute;
+    left: 50%;
+    bottom: 7%;
+    width: 26px;
+    height: 26px;
+    border-radius: 50%;
+    translate: -50% 50%;
+    background: radial-gradient(circle, rgba(255, 255, 255, 0.92), rgba(255, 226, 234, 0.45) 64%, transparent 70%);
+    box-shadow: 0 0 26px rgba(255, 111, 145, 0.26);
 }
 
 /* The seal is the only control in this section, so its touch target must
@@ -912,21 +1006,24 @@ body.overlay-open {
    pulse lives on a decorative layer underneath it. */
 .wax-seal-btn {
     position: absolute;
-    top: 76%;
+    top: 70%;
     left: 50%;
     /* Centred with `translate`, not `transform`, so the pulse below owns
        `transform` outright and can never strip the centering. */
     translate: -50% -50%;
-    width: 80px;
-    height: 80px;
+    width: clamp(78px, 11vw, 92px);
+    height: clamp(78px, 11vw, 92px);
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 2.4rem;
+    font-size: clamp(2.25rem, 4.4vw, 2.75rem);
     color: gold;
-    z-index: 6;
+    z-index: 7;
     cursor: pointer;
+    text-shadow:
+        0 1px 0 rgba(255, 255, 255, 0.9),
+        0 0 12px rgba(255, 221, 87, 0.75);
 }
 
 .wax-seal-btn::before {
@@ -935,22 +1032,56 @@ body.overlay-open {
     inset: 0;
     z-index: -1;
     border-radius: 50%;
-    background: radial-gradient(circle, #ff2a54 0%, #b80024 100%);
-    box-shadow: 0 8px 25px rgba(184, 0, 36, 0.45);
+    background:
+        radial-gradient(circle at 35% 28%, rgba(255, 184, 204, 0.92) 0 10%, transparent 23%),
+        radial-gradient(circle at 70% 72%, rgba(140, 0, 45, 0.24) 0 19%, transparent 38%),
+        linear-gradient(145deg, #ff507d 0%, #e10043 50%, #a90035 100%);
+    box-shadow:
+        0 14px 30px rgba(184, 0, 36, 0.42),
+        inset 0 3px 0 rgba(255, 255, 255, 0.38),
+        inset 0 -8px 16px rgba(98, 0, 35, 0.28);
     animation: sealPulse 2s ease-in-out infinite;
 }
 
+.wax-seal-btn::after {
+    content: '';
+    position: absolute;
+    inset: 8px;
+    z-index: -1;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 232, 190, 0.56);
+    box-shadow:
+        inset 0 0 0 1px rgba(255, 255, 255, 0.18),
+        0 0 18px rgba(255, 215, 110, 0.26);
+    pointer-events: none;
+}
+
 @keyframes sealPulse {
-    0%, 100% { transform: scale(1); }
-    50% { transform: scale(1.1); box-shadow: 0 12px 35px rgba(255, 42, 84, 0.6); }
+    0%, 100% {
+        transform: scale(1);
+        box-shadow:
+            0 14px 30px rgba(184, 0, 36, 0.42),
+            inset 0 3px 0 rgba(255, 255, 255, 0.38),
+            inset 0 -8px 16px rgba(98, 0, 35, 0.28);
+    }
+    50% {
+        transform: scale(1.08);
+        box-shadow:
+            0 18px 38px rgba(255, 42, 84, 0.54),
+            inset 0 3px 0 rgba(255, 255, 255, 0.42),
+            inset 0 -9px 18px rgba(98, 0, 35, 0.3);
+    }
 }
 
 /* A finger cannot hover, and a stuck hover state after a tap looks broken. */
 @media (hover: hover) and (pointer: fine) {
     .wax-seal-btn:hover::before {
         animation-play-state: paused;
-        transform: scale(1.12);
-        box-shadow: 0 14px 38px rgba(255, 42, 84, 0.7);
+        transform: scale(1.1);
+        box-shadow:
+            0 18px 38px rgba(255, 42, 84, 0.58),
+            inset 0 3px 0 rgba(255, 255, 255, 0.42),
+            inset 0 -9px 18px rgba(98, 0, 35, 0.3);
     }
 }
 
@@ -1016,6 +1147,7 @@ body.overlay-open {
     justify-content: center;
     border-radius: 50%;
     background: rgba(0, 0, 0, 0.45);
+    -webkit-backdrop-filter: blur(3px);
     backdrop-filter: blur(3px);
     color: #fff;
     font-family: var(--font-body);
@@ -1040,6 +1172,7 @@ body.overlay-open {
     position: fixed;
     inset: 0;
     background: rgba(15, 15, 25, 0.92);
+    -webkit-backdrop-filter: blur(20px);
     backdrop-filter: blur(20px);
     z-index: 10010;
     display: flex;
@@ -1094,9 +1227,10 @@ body.overlay-open {
 
 .timeline-wrapper {
     position: relative;
-    max-width: 900px;
+    max-width: 760px;
     width: 100%;
     margin: 0 auto;
+    padding-block: 10px 24px;
 }
 
 .timeline-wrapper::before {
@@ -1105,61 +1239,166 @@ body.overlay-open {
     left: 50%;
     top: 0;
     bottom: 0;
-    width: 4px;
-    background: linear-gradient(180deg, var(--rose-gold), var(--deep-rose), var(--gold-solid));
+    width: 3px;
+    background: linear-gradient(180deg, rgba(255, 143, 187, 0.48), #ff6f91 58%, #ffd76e 100%);
     transform: translateX(-50%);
-    border-radius: 2px;
+    border-radius: 999px;
+    box-shadow: 0 0 0 7px rgba(255, 255, 255, 0.3);
 }
 
 .timeline-item {
     display: flex;
     align-items: flex-start;
-    margin-bottom: 60px;
     position: relative;
+    min-height: 250px;
+    margin-bottom: 24px;
 }
 
-.timeline-item:nth-child(odd) { padding-right: calc(50% + 40px); text-align: right; }
-.timeline-item:nth-child(even) { flex-direction: row-reverse; padding-left: calc(50% + 40px); text-align: left; }
+.timeline-item:last-child { margin-bottom: 0; }
+
+.timeline-item:nth-child(odd) {
+    justify-content: flex-start;
+    padding-right: calc(50% + 34px);
+    text-align: right;
+}
+
+.timeline-item:nth-child(even) {
+    justify-content: flex-end;
+    padding-left: calc(50% + 34px);
+    text-align: left;
+}
 
 .timeline-dot {
     position: absolute;
     left: 50%;
-    top: 20px;
-    width: 22px;
-    height: 22px;
-    background: var(--deep-rose);
+    top: 26px;
+    width: 44px;
+    height: 44px;
+    padding: 8px;
+    border: 2px solid rgba(255, 255, 255, 0.95);
     border-radius: 50%;
-    transform: translateX(-50%);
-    z-index: 2;
-    border: 4px solid #fff;
-    box-shadow: 0 0 0 4px var(--rose-gold);
+    background: rgba(255, 255, 255, 0.85);
+    -webkit-backdrop-filter: blur(8px);
+    backdrop-filter: blur(8px);
+    transform: translate(-50%, -50%) scale(0.85);
+    z-index: 4;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow:
+        0 8px 24px rgba(225, 110, 150, 0.15),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    transition: all 0.5s var(--transition-bounce);
 }
+
+/* Pulsing outer aura ring */
+.timeline-dot::after {
+    content: '';
+    position: absolute;
+    inset: -6px;
+    border-radius: 50%;
+    border: 2px solid var(--rose-gold);
+    opacity: 0;
+    transform: scale(0.9);
+    transition: all 0.5s ease;
+    pointer-events: none;
+}
+
+/* Active / Illuminated state */
+.timeline-dot.is-active {
+    transform: translate(-50%, -50%) scale(1.1);
+    background: #ffffff;
+    border-color: #ffffff;
+    box-shadow:
+        0 12px 30px rgba(217, 4, 41, 0.28),
+        0 0 0 4px rgba(255, 255, 255, 0.5),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.timeline-dot.is-active::after {
+    animation: timelineDotPulse 2.2s infinite ease-out;
+}
+
+@keyframes timelineDotPulse {
+    0% {
+        transform: scale(0.9);
+        opacity: 0.85;
+    }
+    100% {
+        transform: scale(1.6);
+        opacity: 0;
+    }
+}
+
+/* SVG icon inside the dot */
+.timeline-dot-svg {
+    width: 100%;
+    height: 100%;
+    display: block;
+    transition: transform 0.4s var(--transition-bounce), filter 0.4s ease;
+    filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.1));
+}
+
+.timeline-dot-svg.double-hearts {
+    overflow: visible;
+}
+
+.timeline-dot.is-active .timeline-dot-svg {
+    transform: scale(1.15);
+    filter: drop-shadow(0 4px 8px rgba(217, 4, 41, 0.25));
+}
+
 
 .timeline-card {
-    background: rgba(255, 255, 255, 0.85);
-    backdrop-filter: blur(15px);
-    border: 1px solid var(--glass-border);
-    border-radius: var(--card-radius);
-    padding: 1.6rem;
-    box-shadow: var(--glass-shadow);
-    transition: transform 0.4s var(--transition-bounce);
+    width: min(292px, 100%);
+    padding: 14px 14px 18px;
+    background: rgba(255, 255, 255, 0.9);
+    -webkit-backdrop-filter: blur(18px);
+    backdrop-filter: blur(18px);
+    border: 1px solid rgba(255, 255, 255, 0.86);
+    border-radius: 16px;
+    box-shadow:
+        0 18px 42px rgba(217, 4, 41, 0.12),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+    transition: transform 0.35s var(--transition-bounce), box-shadow 0.35s ease;
 }
 
-.timeline-card:hover { transform: translateY(-8px); }
+.timeline-card:hover { transform: translateY(-5px); box-shadow: 0 24px 48px rgba(217, 4, 41, 0.17); }
 
 .timeline-card img {
     width: 100%;
-    height: 190px;
+    height: 116px;
     object-fit: cover;
-    border-radius: 18px;
-    margin-bottom: 1rem;
+    display: block;
+    border-radius: 10px;
+    margin-bottom: 10px;
+    box-shadow: 0 10px 20px rgba(150, 62, 100, 0.12);
+}
+
+.timeline-kicker {
+    font-family: var(--font-body);
+    font-size: 0.6rem;
+    font-weight: 700;
+    color: var(--deep-rose);
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 0.1rem;
+    opacity: 0.72;
 }
 
 .timeline-card-title {
     font-family: var(--font-cursive);
-    font-size: 1.8rem;
+    font-size: clamp(1.45rem, 3vw, 1.8rem);
+    line-height: 1.25;
     color: var(--deep-rose);
-    margin-bottom: 0.4rem;
+    margin-bottom: 0.24rem;
+}
+
+.timeline-card-text {
+    font-family: var(--font-body);
+    font-size: clamp(0.68rem, 1.35vw, 0.76rem);
+    line-height: 1.55;
+    color: var(--text-muted);
 }
 
 /* ═══════════════════════════════════════
@@ -1196,10 +1435,89 @@ body.overlay-open {
     pointer-events: none;
 }
 
+#bg-particles-canvas {
+    position: absolute;
+    inset: 0;
+    z-index: 0;
+    pointer-events: none;
+}
+
 #fireworks-canvas {
     position: absolute;
     inset: 0;
     z-index: 1;
+}
+
+.finale-bg-decorations {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    z-index: 0;
+    overflow: hidden;
+}
+
+.f-bubble {
+    position: absolute;
+    border-radius: 50%;
+    background: radial-gradient(circle at 35% 35%, rgba(255, 255, 255, 0.95), rgba(255, 182, 193, 0.5) 50%, rgba(217, 4, 41, 0.25) 90%);
+    box-shadow: 0 10px 30px rgba(255, 105, 180, 0.35), inset 0 0 15px rgba(255, 255, 255, 0.9);
+    animation: floatBubble 7s ease-in-out infinite alternate;
+}
+.f-bubble.b1 { width: 90px; height: 90px; top: 30%; left: 5%; animation-delay: 0s; }
+.f-bubble.b2 { width: 120px; height: 120px; bottom: 10%; right: 5%; animation-delay: -2.5s; }
+.f-bubble.b3 { width: 75px; height: 75px; top: 65%; left: 8%; animation-delay: -4.5s; }
+.f-bubble.b4 { width: 105px; height: 100px; top: 38%; right: 6%; animation-delay: -1.8s; }
+
+.f-element {
+    position: absolute;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    animation: floatHeart 6.5s ease-in-out infinite alternate;
+}
+.luxe-svg-badge {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+.f-element.h1 { top: 34%; left: 15%; animation-delay: 0s; }
+.f-element.h2 { top: 72%; left: 18%; animation-delay: -2s; }
+.f-element.h3 { top: 44%; right: 14%; animation-delay: -3.5s; }
+.f-element.h4 { bottom: 14%; right: 12%; animation-delay: -1.2s; }
+
+.title-svg-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    vertical-align: middle;
+    width: 1.05em;
+    height: 1.05em;
+    margin-left: 0.08em;
+    position: relative;
+    top: -0.02em;
+    animation: titleBadgeFloat 3.5s ease-in-out infinite alternate;
+}
+.title-svg-badge svg {
+    width: 100%;
+    height: 100%;
+    overflow: visible;
+}
+
+@keyframes titleBadgeFloat {
+    0% { transform: translateY(0) scale(1) rotate(0deg); }
+    100% { transform: translateY(-3px) scale(1.06) rotate(5deg); }
+}
+
+@keyframes floatBubble {
+    0% { transform: translateY(0) scale(1) rotate(0deg); }
+    100% { transform: translateY(-40px) scale(1.12) rotate(18deg); }
+}
+
+@keyframes floatHeart {
+    0% { transform: translateY(0) scale(1) rotate(-12deg); }
+    100% { transform: translateY(-35px) scale(1.25) rotate(18deg); }
 }
 
 .finale-content { position: relative; z-index: 3; }
@@ -1219,12 +1537,17 @@ body.overlay-open {
 }
 
 .finale-message {
-    font-family: var(--font-body);
-    font-size: clamp(1rem, 2.5vw, 1.22rem);
+    font-family: var(--font-cursive);
+    font-size: clamp(1.65rem, 3.7vw, 2.35rem);
     max-width: 720px;
     margin: 0 auto 1.5rem;
-    line-height: 2;
-    color: var(--text-muted);
+    line-height: 1.45;
+    color: var(--deep-rose);
+    background: linear-gradient(135deg, var(--deep-rose) 0%, #ff4d6d 55%, #ff5f8a 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 3px 14px rgba(244, 172, 183, 0.2);
 }
 
 .finale-message:last-of-type {
@@ -1274,8 +1597,8 @@ body.overlay-open {
 
     /* 💌 Envelope Box Tablet Fit */
     .envelope-clean-box {
-        max-width: 520px;
-        height: 300px;
+        max-width: 560px;
+        height: 320px;
     }
 
     /* 📸 Polaroid Grid 2-Column Symmetry */
@@ -1289,13 +1612,10 @@ body.overlay-open {
 
     /* 🕰️ Timeline Centered Symmetrical Alignment */
     .timeline-wrapper {
-        max-width: 820px;
+        max-width: 760px;
     }
-    .timeline-item:nth-child(odd) {
-        padding-right: calc(50% + 32px);
-    }
-    .timeline-item:nth-child(even) {
-        padding-left: calc(50% + 32px);
+    .timeline-card {
+        width: min(280px, 100%);
     }
 
     /* Touch targets ≥ 44px */
@@ -1329,6 +1649,15 @@ body.overlay-open {
     .polaroid-img-wrap {
         height: 230px;
     }
+    .timeline-wrapper {
+        max-width: 700px;
+    }
+    .timeline-card {
+        width: min(245px, 100%);
+    }
+    .timeline-card img {
+        height: 104px;
+    }
 }
 
 /* iPad Landscape (1180–1194): give the 2-column grid more breathing room.
@@ -1344,15 +1673,67 @@ body.overlay-open {
 
 /* Mobile Devices */
 @media (max-width: 767px) {
-    .timeline-wrapper::before { left: 20px; }
-    .timeline-item:nth-child(odd), .timeline-item:nth-child(even) {
-        flex-direction: row;
-        padding-left: 60px;
+    .polaroid-grid { grid-template-columns: 1fr; }
+    .timeline-wrapper {
+        max-width: 430px;
+        padding-block: 0;
+    }
+    .timeline-wrapper::before {
+        left: 23px;
+    }
+    .timeline-item,
+    .timeline-item:nth-child(odd),
+    .timeline-item:nth-child(even) {
+        min-height: 0;
+        margin-bottom: 28px;
+        padding-left: 62px;
         padding-right: 0;
+        justify-content: flex-start;
         text-align: left;
     }
-    .timeline-dot { left: 20px; }
-    .polaroid-grid { grid-template-columns: 1fr; }
+    .timeline-dot {
+        left: 23px;
+        top: 26px;
+        width: 38px;
+        height: 38px;
+        padding: 6px;
+        min-width: auto;
+        min-height: 0;
+        border-width: 2px;
+    }
+    .timeline-card,
+    .timeline-item:nth-child(odd) .timeline-card,
+    .timeline-item:nth-child(even) .timeline-card {
+        width: min(100%, 310px);
+        text-align: left;
+        padding: 1rem;
+        border-radius: 18px;
+    }
+    .timeline-card img {
+        height: 132px;
+        border-radius: 12px;
+    }
+    .timeline-card-title {
+        font-size: clamp(1.55rem, 8vw, 1.95rem);
+    }
+    .timeline-card-text {
+        font-size: 0.75rem;
+    }
+    .envelope-clean-box {
+        max-width: min(100%, 430px);
+        height: clamp(238px, 62vw, 280px);
+        border-radius: 28px;
+    }
+    .envelope-clean-box::after {
+        inset: 8px;
+        border-radius: 22px;
+    }
+    .wax-seal-btn {
+        top: 72%;
+        width: 74px;
+        height: 74px;
+        font-size: 2.15rem;
+    }
     .audio-control-pill { top: 16px; right: 16px; padding: 10px 18px; }
     .audio-label { font-size: 0.78rem; }
 }

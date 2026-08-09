@@ -1,12 +1,27 @@
 <!DOCTYPE html>
-<html lang="es">
+<html lang="en">
 
 <head>
   <meta charset="UTF-8">
   <meta name="viewport"
     content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
-  <title></title>
-  <link rel="stylesheet" href="style.css">
+  <title>Galaxy Gallery ✦ | Happy Birthday Tongjai</title>
+  <!-- style.css / main.js carry a ?v= token that is the clock on a dev host, so
+       a hand-edit shows up on the next reload instead of being served from a
+       stale cache; a real host keeps a fixed token so visitors still cache.
+       See index.html at the project root for the long version of why. -->
+  <script>
+    (function () {
+      var h = location.hostname;
+      var dev = location.protocol === 'file:' || !h
+        || h === 'localhost' || h === '::1' || h === '[::1]'
+        || /^127\./.test(h) || /^(10|192\.168|169\.254)\./.test(h)
+        || /^172\.(1[6-9]|2\d|3[01])\./.test(h) || /\.local$/.test(h);
+      var v = window.__ASSET_V = dev ? 'dev' + Date.now() : '2026-08-09';
+      document.write('<link rel="stylesheet" href="style.css?v=' + v + '">');
+    })();
+  </script>
+  <noscript><link rel="stylesheet" href="style.css"></noscript>
 </head>
 
 <body>
@@ -23,8 +38,8 @@
     <div class="intro-card">
       <h1 class="intro-title"></h1>
       <div class="intro-art" id="introArt"></div>
-      <p class="intro-sub">Para mi princesita</p>
-      <button class="intro-btn" id="startBtn">Start</button>
+      <p class="intro-sub">For my princess</p>
+      <button class="intro-btn" id="startBtn" type="button">Start</button>
     </div>
   </div>
 
@@ -34,9 +49,9 @@
       <span class="hud-brand"></span>
     </div>
     <div class="hud-bottom">
-      <button class="hud-btn" id="btnOrbit" title="Órbita automática">⟳</button>
-      <button class="hud-btn" id="btnHeart" title="Latido del corazón">♥</button>
-      <button class="hud-btn" id="btnHome" title="Back to the letter" aria-label="Back to the letter">
+      <button class="hud-btn" id="btnOrbit" type="button" title="Auto-orbit" aria-label="Auto-orbit">⟳</button>
+      <button class="hud-btn" id="btnHeart" type="button" title="Heartbeat" aria-label="Heartbeat">♥</button>
+      <button class="hud-btn" id="btnHome" type="button" title="Back to the letter" aria-label="Back to the letter">
         <svg viewBox="0 0 24 24" width="19" height="19" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
           <path d="M3 11.5 12 4l9 7.5" />
           <path d="M5.5 10v9a1 1 0 0 0 1 1H9a1 1 0 0 0 1-1v-4a1 1 0 0 1 1-1h2a1 1 0 0 1 1 1v4a1 1 0 0 0 1 1h2.5a1 1 0 0 0 1-1v-9" />
@@ -49,8 +64,25 @@
   <!-- ══════ Photo lightbox ══════ -->
   <div class="lightbox" id="lightbox">
     <div class="lightbox-inner">
-      <img id="lightboxImg" alt="">
+      <!-- No src until a heart is opened. An empty src="" resolves to the page
+           itself, so the browser fetches this whole document as an image and
+           logs a failure before anyone has clicked anything. -->
+      <img id="lightboxImg" alt="" hidden>
       <p id="lightboxCap"></p>
+    </div>
+  </div>
+
+  <!-- ══════ Shown only when this page was opened straight off disk ══════ -->
+  <div class="needs-server" id="needs-server" hidden>
+    <div class="needs-server-card">
+      <h1>This one needs a server ✦</h1>
+      <p>The galaxy is built with ES modules, and browsers refuse to load those
+        from a <code>file://</code> page — opened by double-click it can only
+        ever be a black screen.</p>
+      <p>From the <strong>project folder</strong>, run:</p>
+      <pre><code>npx http-server -p 8080 -c-1</code></pre>
+      <p>then open <code>http://localhost:8080/galaxy-gallery/</code></p>
+      <a class="needs-server-back" href="../index.html#love-letter">Back to the letter</a>
     </div>
   </div>
 
@@ -61,7 +93,21 @@
   }
 }
 </script>
-  <script type="module" src="main.js"></script>
+  <!-- main.js is an ES module, so it is *fetched* rather than read off disk.
+       On a file:// page that fetch is a cross-origin request the browser
+       blocks outright, and the failure only ever lands in the console — the
+       visitor just sees an unexplained black screen. Say so plainly instead,
+       and only boot the scene where it can actually run. -->
+  <script>
+    (function () {
+      if (location.protocol === 'file:') {
+        document.getElementById('needs-server').hidden = false;
+        document.getElementById('hud').hidden = true;
+        return;
+      }
+      document.write('<script type="module" src="main.js?v=' + window.__ASSET_V + '"><\/script>');
+    })();
+  </script>
 </body>
 
 </html>

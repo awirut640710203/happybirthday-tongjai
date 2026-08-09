@@ -1,0 +1,525 @@
+/* ═══════════════════════════════════════════════════════
+   🎁 "One More Gift" — inline section between #love-letter and #gallery
+   Same gift-box construction as css/lock.css's unlock screen, but every
+   class and @keyframes name is prefixed `reveal-`/`reveal` — this page
+   already loads css/lock.css, which owns `.gift`, `.gift-body`, `.spark`
+   and the bowOpen/lidOpen/etc. keyframes for the lock screen's own box.
+   @keyframes names are global regardless of nesting, so reusing them here
+   would silently repoint the lock screen's animations (or vice versa,
+   depending on cascade order) — kept in its own file for the same reason
+   css/lock.css is separate from css/style.css: it's a self-contained
+   component, easier to audit against its sibling than buried in the
+   1500-line site stylesheet.
+   ═══════════════════════════════════════════════════════ */
+
+.reveal-kicker {
+    font-family: var(--font-body);
+    font-size: clamp(10px, 1.4vw, 13px);
+    font-weight: 700;
+    letter-spacing: 0.42em;
+    text-indent: 0.42em;
+    text-transform: uppercase;
+    color: rgba(201, 24, 74, 0.42);
+    margin-bottom: 0.6rem;
+}
+
+.reveal-hint {
+    margin-top: clamp(18px, 3vh, 28px);
+    transition: opacity 0.4s ease;
+    animation: revealHintPulse 2.4s 1.4s ease-in-out infinite;
+}
+
+.reveal-hint.is-hidden { opacity: 0 !important; animation: none; }
+
+.reveal-hint-icon {
+    display: inline-block;
+    vertical-align: middle;
+    margin-left: 4px;
+}
+
+@keyframes revealHintPulse {
+    0%, 100% { opacity: 1; }
+    50%      { opacity: 0.55; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .reveal-hint { animation: none; }
+}
+
+/* Reserved height so the reveal message never shifts the layout when it
+   appears — same convention as .lock-msg / .blow-btn-hint. Scale-in rather
+   than a plain fade, so the payoff line lands with a little weight instead
+   of just materialising. Solid colour, not a gradient-clip: #gift-reveal's
+   ::before/::after orbs animate continuously behind this text, and that is
+   the exact combination that caused the lock screen's WebKit-only flicker
+   (see CHANGES.md — "title/hint gradient text replaced with solid color").
+   Not worth reintroducing here just for a status line. */
+.reveal-status {
+    min-height: 1.6em;
+    margin-top: clamp(10px, 2vh, 16px);
+    font-family: var(--font-cursive);
+    font-size: clamp(1.3rem, 4vw, 1.85rem);
+    color: #b4791f;
+    text-shadow: 0 1px 0 rgba(255, 255, 255, 0.85), 0 6px 18px rgba(217, 154, 28, 0.28);
+    opacity: 0;
+    transform: scale(0.85);
+    transition: opacity 0.5s ease, transform 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+.reveal-status.is-visible { opacity: 1; transform: scale(1); }
+
+/* ═══════════════════════════════════════════════════════
+   The box — every dimension is `<lock.css value> * var(--u)`, so it can
+   be diffed 1:1 against .gift/.gift-body/etc. there.
+   ═══════════════════════════════════════════════════════ */
+.reveal-box-wrap {
+    position: relative;
+    margin-top: clamp(8px, 1.6vh, 16px);
+    --u: 1px;
+}
+
+@media (min-width: 768px) { .reveal-box-wrap { --u: 1.3px; } }
+
+.reveal-box {
+    position: relative;
+    width: calc(200 * var(--u));
+    height: calc(200 * var(--u));
+    cursor: pointer;
+    animation: revealFloat 3.4s ease-in-out infinite alternate;
+    transform-origin: 50% 100%;
+}
+
+.reveal-box:focus-visible {
+    outline: 3px solid var(--deep-rose);
+    outline-offset: 6px;
+    border-radius: 18px;
+}
+
+@keyframes revealFloat {
+    0%   { transform: translateY(0) rotate(-1.5deg); }
+    100% { transform: translateY(calc(-14 * var(--u))) rotate(1.5deg); }
+}
+
+@media (hover: hover) and (pointer: fine) {
+    .reveal-box:not(.is-open):hover { filter: brightness(1.04); }
+}
+
+.reveal-box-shadow {
+    position: absolute;
+    left: 50%;
+    bottom: calc(2 * var(--u));
+    width: calc(132 * var(--u));
+    height: calc(18 * var(--u));
+    margin-left: calc(-66 * var(--u));
+    border-radius: 50%;
+    background: radial-gradient(ellipse, rgba(190, 90, 135, 0.28), transparent 72%);
+    animation: revealShadowPulse 3.4s ease-in-out infinite alternate;
+}
+
+@keyframes revealShadowPulse {
+    0%   { transform: scale(1); opacity: 0.85; }
+    100% { transform: scale(0.82); opacity: 0.5; }
+}
+
+.reveal-box-body {
+    position: absolute;
+    left: 50%;
+    bottom: calc(16 * var(--u));
+    width: calc(152 * var(--u));
+    height: calc(106 * var(--u));
+    margin-left: calc(-76 * var(--u));
+    border-radius: 14px 14px 18px 18px;
+    background: linear-gradient(158deg, #ffa4c8 0%, #fb7cad 58%, #f2649c 100%);
+    box-shadow:
+        0 18px 36px rgba(220, 90, 140, 0.34),
+        inset 0 -14px 24px rgba(200, 60, 112, 0.3),
+        inset 0 3px 0 rgba(255, 255, 255, 0.45);
+    overflow: hidden;
+    z-index: 2;
+}
+
+.reveal-box-inside {
+    position: absolute;
+    left: calc(4 * var(--u));
+    right: calc(4 * var(--u));
+    top: 0;
+    height: calc(30 * var(--u));
+    border-radius: 10px 10px 45% 45%;
+    background: linear-gradient(180deg, #9c2a5c 0%, #c44a80 55%, rgba(196, 74, 128, 0) 100%);
+    opacity: 0;
+    z-index: 3;
+    transition: opacity 0.35s ease;
+}
+
+.reveal-box.is-open .reveal-box-inside { opacity: 1; }
+
+.reveal-box-ribbon-v {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: calc(30 * var(--u));
+    margin-left: calc(-15 * var(--u));
+    background: linear-gradient(90deg,
+        rgba(255, 255, 255, 0.72) 0%, rgba(255, 255, 255, 0.98) 40%,
+        rgba(255, 255, 255, 0.98) 60%, rgba(255, 255, 255, 0.72) 100%);
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.5);
+}
+
+.reveal-box-shine {
+    position: absolute;
+    top: -40%;
+    left: -70%;
+    width: 45%;
+    height: 200%;
+    background: linear-gradient(100deg, transparent, rgba(255, 255, 255, 0.55), transparent);
+    transform: skewX(-18deg);
+    animation: revealShine 4.5s ease-in-out infinite;
+}
+
+@keyframes revealShine {
+    0%, 55% { left: -70%; }
+    100%    { left: 160%; }
+}
+
+.reveal-box-lid {
+    position: absolute;
+    left: 50%;
+    top: calc(62 * var(--u));
+    width: calc(178 * var(--u));
+    height: calc(44 * var(--u));
+    margin-left: calc(-89 * var(--u));
+    border-radius: 12px;
+    background: linear-gradient(158deg, #ffc0dc 0%, #ff9ac2 68%, #fb84b2 100%);
+    box-shadow: 0 12px 24px rgba(220, 90, 140, 0.32), inset 0 3px 0 rgba(255, 255, 255, 0.7);
+    z-index: 4;
+}
+
+.reveal-box-ribbon-h {
+    position: absolute;
+    left: 50%;
+    top: 0;
+    bottom: 0;
+    width: calc(30 * var(--u));
+    margin-left: calc(-15 * var(--u));
+    background: linear-gradient(90deg,
+        rgba(255, 255, 255, 0.75) 0%, rgba(255, 255, 255, 1) 40%,
+        rgba(255, 255, 255, 1) 60%, rgba(255, 255, 255, 0.75) 100%);
+}
+
+.reveal-box-bow {
+    position: absolute;
+    left: 50%;
+    top: calc(-42 * var(--u));
+    width: calc(140 * var(--u));
+    height: calc(78 * var(--u));
+    margin-left: calc(-70 * var(--u));
+    transform-origin: 50% 80%;
+}
+
+.reveal-bow-svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    filter: drop-shadow(0 4px 8px rgba(214, 78, 128, 0.35));
+}
+
+.reveal-box-glow {
+    position: absolute;
+    left: 50%;
+    top: calc(30 * var(--u));
+    width: calc(170 * var(--u));
+    height: calc(170 * var(--u));
+    margin-left: calc(-85 * var(--u));
+    border-radius: 50%;
+    background: radial-gradient(circle, #ffffff 0%, #fff6d4 26%, rgba(255, 190, 220, 0.75) 52%, transparent 72%);
+    opacity: 0;
+    transform: scale(0.2);
+    z-index: 6;
+    pointer-events: none;
+    filter: blur(2px);
+}
+
+.reveal-box-burst {
+    position: absolute;
+    left: 50%;
+    top: calc(96 * var(--u));
+    width: calc(90 * var(--u));
+    height: calc(90 * var(--u));
+    margin: calc(-45 * var(--u)) 0 0 calc(-45 * var(--u));
+    border-radius: 50%;
+    border: 3px solid rgba(255, 255, 255, 0.9);
+    opacity: 0;
+    z-index: 5;
+    pointer-events: none;
+}
+
+/* Second ring, golden, wider and later — the first ring reads as the
+   flash of opening, this one as the wave of light still travelling
+   outward after it, so the burst has depth instead of one flat pop. */
+.reveal-box-burst--2 {
+    border-color: rgba(255, 215, 110, 0.85);
+    border-width: 2px;
+}
+
+/* ═══════════════════════════════════════════════════════
+   Grand payoff layers — rays, halo and flash. Siblings of .reveal-box (not
+   descendants), so they're triggered from .reveal-box-wrap.is-open rather
+   than .reveal-box.is-open; positioned relative to the wrap, centred on
+   where the box sits inside it.
+   ═══════════════════════════════════════════════════════ */
+
+/* One-shot burst of light rays, adapted from css/lock.css's .lock-rays —
+   that version spins continuously in the background of the whole lock
+   screen and only flares its opacity on unlock; this one has no ambient
+   idle state (nothing here needs a rotating layer sitting invisibly in the
+   DOM of an in-page section), so the rotation itself is baked into the
+   one-shot keyframe instead. */
+.reveal-rays {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 78vmin;
+    height: 78vmin;
+    margin: -39vmin 0 0 -39vmin;
+    z-index: 1;
+    pointer-events: none;
+    opacity: 0;
+    background: repeating-conic-gradient(
+        from 0deg at 50% 50%,
+        rgba(255, 224, 178, 0.8) 0deg 3deg,
+        transparent 3deg 13deg
+    );
+    -webkit-mask-image: radial-gradient(circle, #000 0%, transparent 58%);
+    mask-image: radial-gradient(circle, #000 0%, transparent 58%);
+}
+
+/* Soft golden halo, blooming wide and slow behind the rays — reads as the
+   glow of the light rather than a hard-edged shape. */
+.reveal-halo {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: calc(150 * var(--u));
+    height: calc(150 * var(--u));
+    margin-left: calc(-75 * var(--u));
+    margin-top: calc(-75 * var(--u));
+    border-radius: 50%;
+    z-index: 0;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(circle, rgba(255, 215, 110, 0.5) 0%, rgba(244, 172, 183, 0.32) 45%, transparent 74%);
+    filter: blur(6px);
+}
+
+/* Bright wash across the whole stage at the peak of the burst — the
+   in-page equivalent of css/lock.css's .lock-flash, scaled down to this
+   section's own stage rather than the full viewport (that treatment is
+   reserved for the site's single biggest moment, the gate unlock). */
+.reveal-flash {
+    position: absolute;
+    inset: -30%;
+    z-index: 9;
+    pointer-events: none;
+    opacity: 0;
+    background: radial-gradient(circle at 50% 46%, #fffdf6 0%, rgba(255, 244, 220, 0.82) 34%, transparent 68%);
+}
+
+.reveal-box-sparkles { position: absolute; inset: 0; z-index: 7; pointer-events: none; }
+
+.reveal-spark {
+    position: absolute;
+    left: 50%;
+    top: calc(40 * var(--u));
+    width: 7px;
+    height: 7px;
+    margin: -3.5px 0 0 -3.5px;
+    background: linear-gradient(135deg, #fff6d4, #ffd9df);
+    transform: translate(0, 0) rotate(45deg) scale(0);
+    opacity: 0;
+    box-shadow: 0 0 6px rgba(255, 220, 160, 0.8);
+}
+
+.reveal-box.is-open .reveal-spark {
+    animation: revealSparkRise 1.1s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+    animation-delay: var(--spark-delay, 0.3s);
+}
+
+.reveal-spark.rs1 { --spark-delay: 0.30s; --sx: calc(-58 * var(--u)); --sy: calc(-92 * var(--u)); }
+.reveal-spark.rs2 { --spark-delay: 0.38s; --sx: calc( 46 * var(--u)); --sy: calc(-108 * var(--u)); }
+.reveal-spark.rs3 { --spark-delay: 0.34s; --sx: calc( -8 * var(--u)); --sy: calc(-132 * var(--u)); }
+.reveal-spark.rs4 { --spark-delay: 0.44s; --sx: calc(-84 * var(--u)); --sy: calc(-54 * var(--u)); }
+.reveal-spark.rs5 { --spark-delay: 0.40s; --sx: calc( 78 * var(--u)); --sy: calc(-60 * var(--u)); }
+
+@keyframes revealSparkRise {
+    0%   { transform: translate(0, 0) rotate(45deg) scale(0); opacity: 0; }
+    22%  { transform: translate(calc(var(--sx) * 0.3), calc(var(--sy) * 0.3)) rotate(45deg) scale(1); opacity: 1; }
+    100% { transform: translate(var(--sx), var(--sy)) rotate(200deg) scale(0.3); opacity: 0; }
+}
+
+/* ── The unwrap ── same curved lift-and-tilt beat as css/lock.css's gift */
+.reveal-box.is-open { animation: none; }
+
+.reveal-box.is-open .reveal-box-bow {
+    animation: revealBowOpen 0.9s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes revealBowOpen {
+    0%   { transform: translate(0, 0) rotate(0deg) scale(1); opacity: 1; }
+    35%  { transform: translate(calc(-2 * var(--u)), calc(-18 * var(--u))) rotate(-8deg) scale(1.06); opacity: 1; }
+    100% { transform: translate(calc(-6 * var(--u)), calc(-128 * var(--u))) rotate(-34deg) scale(0.68); opacity: 0; }
+}
+
+.reveal-box.is-open .reveal-box-lid {
+    animation: revealLidOpen 1s cubic-bezier(0.22, 1, 0.36, 1) forwards;
+}
+
+@keyframes revealLidOpen {
+    0%   { transform: translate(0, 0) rotate(0deg); opacity: 1; }
+    30%  { transform: translate(calc(2 * var(--u)), calc(-14 * var(--u))) rotate(-10deg); opacity: 1; }
+    100% { transform: translate(calc(8 * var(--u)), calc(-156 * var(--u))) rotate(-20deg); opacity: 0; }
+}
+
+.reveal-box.is-open .reveal-box-glow {
+    animation: revealGlow 1.5s cubic-bezier(0.2, 0.8, 0.3, 1) 0.25s forwards;
+}
+
+@keyframes revealGlow {
+    0%   { opacity: 0; transform: scale(0.2); }
+    35%  { opacity: 1; transform: scale(1.5); }
+    100% { opacity: 0; transform: scale(7); }
+}
+
+.reveal-box.is-open .reveal-box-burst {
+    animation: revealBurst 1s ease-out 0.3s forwards;
+}
+
+.reveal-box.is-open .reveal-box-burst--2 {
+    animation: revealBurst2 1.3s ease-out 0.45s forwards;
+}
+
+@keyframes revealBurst {
+    0%   { opacity: 0.95; transform: scale(0.3); border-width: 4px; }
+    100% { opacity: 0; transform: scale(5.5); border-width: 1px; }
+}
+
+@keyframes revealBurst2 {
+    0%   { opacity: 0.85; transform: scale(0.3); }
+    100% { opacity: 0; transform: scale(7.5); }
+}
+
+.reveal-box.is-open .reveal-box-body {
+    animation: revealSettle 0.9s cubic-bezier(0.34, 1.5, 0.5, 1) forwards;
+}
+
+@keyframes revealSettle {
+    0%   { transform: scale(1, 1); }
+    35%  { transform: scale(1.12, 0.9); }
+    100% { transform: scale(1, 1); }
+}
+
+/* ── Rays / halo / flash — triggered from the wrap, not the box, since
+   they're the box's siblings. ── */
+#reveal-box-wrap.is-open .reveal-rays {
+    animation: revealRaysBurst 1.9s cubic-bezier(0.2, 0.8, 0.3, 1) forwards;
+}
+
+@keyframes revealRaysBurst {
+    0%   { opacity: 0;    transform: rotate(0deg) scale(0.55); }
+    32%  { opacity: 0.95; transform: rotate(22deg) scale(1.25); }
+    100% { opacity: 0;    transform: rotate(50deg) scale(1.85); }
+}
+
+#reveal-box-wrap.is-open .reveal-halo {
+    animation: revealHaloBloom 2s cubic-bezier(0.2, 0.8, 0.3, 1) 0.1s forwards;
+}
+
+@keyframes revealHaloBloom {
+    0%   { opacity: 0;   transform: scale(0.4); }
+    30%  { opacity: 0.9; transform: scale(1.3); }
+    100% { opacity: 0;   transform: scale(2.6); }
+}
+
+#reveal-box-wrap.is-open .reveal-flash {
+    animation: revealFlash 0.9s ease-out 0.55s forwards;
+}
+
+@keyframes revealFlash {
+    0%   { opacity: 0; }
+    45%  { opacity: 0.85; }
+    100% { opacity: 0; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   Petal bloom — the payoff on open, standing in for confetti. Same
+   construction as css/lock.css's .bloom-layer/.petal: CSS custom
+   properties drive one shared keyframe, JS only creates/removes nodes.
+   ═══════════════════════════════════════════════════════ */
+.reveal-bloom-layer {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    overflow: visible;
+    z-index: 8;
+}
+
+.reveal-bloom-ring {
+    position: absolute;
+    left: 50%;
+    top: 46%;
+    width: calc(50 * var(--u));
+    height: calc(50 * var(--u));
+    margin: calc(-25 * var(--u)) 0 0 calc(-25 * var(--u));
+    border-radius: 50%;
+    background: radial-gradient(circle,
+        rgba(255, 215, 110, 0.55) 0%, rgba(244, 172, 183, 0.4) 45%, transparent 72%);
+    opacity: 0;
+    animation: revealBloomRing 1.1s ease-out forwards;
+}
+
+@keyframes revealBloomRing {
+    0%   { opacity: 0;   scale: 0.5; }
+    28%  { opacity: 0.9; }
+    100% { opacity: 0;   scale: 4; }
+}
+
+.reveal-petal {
+    position: absolute;
+    left: 50%;
+    top: 42%;
+    border-radius: 0 60% 0 60%;
+    opacity: 0;
+    animation: revealPetalRise var(--dur, 1.6s) ease-out forwards;
+    animation-delay: var(--delay, 0s);
+}
+
+@keyframes revealPetalRise {
+    0%   { opacity: 0;    translate: 0 0;               rotate: 0deg;       scale: 0.4; }
+    14%  { opacity: 0.95; }
+    100% { opacity: 0;    translate: var(--dx) var(--dy); rotate: var(--rot); scale: 1; }
+}
+
+/* ═══════════════════════════════════════════════════════
+   Reduced motion — opacity is not "movement", same convention as every
+   other reduced-motion path on the site.
+   ═══════════════════════════════════════════════════════ */
+@media (prefers-reduced-motion: reduce) {
+    .reveal-box, .reveal-box-shadow, .reveal-box-shine { animation: none !important; }
+
+    .reveal-box.is-open .reveal-box-bow,
+    .reveal-box.is-open .reveal-box-lid,
+    .reveal-box.is-open .reveal-box-glow,
+    .reveal-box.is-open .reveal-box-burst,
+    .reveal-box.is-open .reveal-box-burst--2,
+    .reveal-box.is-open .reveal-box-body,
+    .reveal-box.is-open .reveal-spark,
+    #reveal-box-wrap.is-open .reveal-rays,
+    #reveal-box-wrap.is-open .reveal-halo,
+    #reveal-box-wrap.is-open .reveal-flash {
+        animation: none !important;
+    }
+
+    .reveal-box.is-open .reveal-box-lid  { opacity: 0; }
+    .reveal-box.is-open .reveal-box-bow  { opacity: 0; }
+    .reveal-box.is-open .reveal-box-inside { opacity: 1; }
+}

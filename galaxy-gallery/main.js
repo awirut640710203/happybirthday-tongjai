@@ -23,11 +23,11 @@ const CONFIG = {
     introArt: '../assets/photos/gif2.gif',
 
     phrases: [
-        'MI CORAZÓN ES TUYO',
-        'AMOR ETERNO ✦',
-        'INFINITO ∞',
-        'CONTIGO SIEMPRE',
-        'TE AMO ♥'
+        'MY HEART IS YOURS',
+        'ETERNAL LOVE ✦',
+        'INFINITE ∞',
+        'ALWAYS WITH YOU',
+        'I LOVE YOU ♥'
     ],
 
     /* Numbered locket frames orbiting the disc.
@@ -1390,6 +1390,7 @@ canvas.addEventListener('pointerup', (e) => {
     if (hits.length) {
         const d = hits[0].object.userData;
         lightboxImg.src = d.src;
+        lightboxImg.hidden = false;   // starts hidden so an empty src never gets fetched
         lightboxCap.textContent = d.caption;
         lightbox.classList.add('open');
     }

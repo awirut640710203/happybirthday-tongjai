@@ -201,8 +201,8 @@
             'So close 😉',
             'Hint: a date that means something to us 😉'
         ];
-        // The hint carries the title's own look (serif italic gradient),
-        // not the plain red error styling the first two lines use.
+        // Keep every response in the same soft hint styling; the class still
+        // records the state, but colour no longer jumps red/green.
         const idx = Math.min(attempts - 1, lines.length - 1);
         setMsg(lines[idx], idx === lines.length - 1 ? 'hint' : 'error');
 

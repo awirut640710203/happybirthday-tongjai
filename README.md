@@ -1,34 +1,49 @@
-# 🎂 Happy Birthday Mini Website 🎉  
+# 🎂 Happy Birthday Mini Website 🎉
 
-A beautiful, interactive mini website I built to celebrate my girlfriend’s special day ❤️.  
-This project is made with **HTML, CSS, and JavaScript** and includes animations, surprises, and heartfelt wishes.  
+A beautiful, interactive mini website I built to celebrate my girlfriend’s special day ❤️.
+This project is made with **HTML, CSS, and JavaScript** and includes animations, surprises, and heartfelt wishes.
 
-✨ Anyone can use this project to create a unique online birthday greeting for their loved one!  
-
----
-
-## 🚀 Live Demo  
-👉 [Click here to view the site](https://nikitayadav19.github.io/HappyBirthdayGF)  
+✨ Anyone can use this project to create a unique online birthday greeting for their loved one!
 
 ---
 
+## 🚀 Running it
 
-## 🎁 Features   
+GitHub Pages is **not** enabled on this repo yet, so there is no live URL to
+share — run it locally from the project root:
+
+```bash
+npx http-server -p 8080 -c-1
+```
+
+then open <http://localhost:8080/>.
+
+> [!IMPORTANT]
+> Serve it over HTTP rather than double-clicking `index.html`. The main page
+> works either way, but `galaxy-gallery` is built with ES modules, which a
+> browser refuses to load from a `file://` page — opened that way it can only
+> ever be a black screen. (It now says so on screen instead of failing
+> silently, but it still won't run.)
+
+---
+
+## 🎁 Features
+
 - 🎁 **Gift Box Unwrap lock screen** — 8-digit passcode gate with a floating gift
   box, pastel mesh background and drifting bubbles & hearts. Enter the right code
   and the bow flies off, the lid lifts, and light bursts out of the box
 - 😾😼😹😾 **Angry cat quartet** — four cats perched on all four corners of
   the password card (not the gift box), every time the passcode is wrong,
   each landing with its own little stagger and a shared speech bubble
-- 💌 Heartfelt birthday message with typewriter effect  
-- 🌟 Responsive design (phone, tablet & desktop — tuned for iPad Gen 11)  
-- ✨ Easy to customize for anyone  
+- 💌 Heartfelt birthday message with typewriter effect
+- 🌟 Responsive design (phone, tablet & desktop — tuned for iPad Gen 11)
+- ✨ Easy to customize for anyone
 
 ---
 
 ## 🔑 The Passcode
 
-The gate is configured in [`lock.js`](lock.js):
+The gate is configured in [`js/lock.js`](js/lock.js):
 
 ```js
 const PASSCODE = '11082546';   // change this to your own date
@@ -41,7 +56,7 @@ Once entered correctly it is remembered for the rest of the browser tab session
 > This is a **decorative** gate, not real security — the code lives in the page
 > source and anyone can read it. It's there for the surprise, not to protect data.
 
-Files: `lock.css` + `lock.js` hold the gate; `script.js` exposes
+Files: `css/lock.css` + `js/lock.js` hold the gate; `js/script.js` exposes
 `window.startLandingExperience()`, which the gate calls once it opens so the hero
 intro doesn't play behind it.
 
@@ -72,18 +87,43 @@ cat-4) each reading as a matched set despite their different source shapes.
 The speech bubble is shared (one message for all four, randomized without
 back-to-back repeats) and floats centered below the card rather than pinned
 to any one cat, which keeps the composition from getting cluttered. See
-`showAngryCat()` / `pickLine()` / `hideAngryCat()` in `lock.js`.
+`showAngryCat()` / `pickLine()` / `hideAngryCat()` in `js/lock.js`.
 
 ---
 
-## 🛠️ Tech Stack  
-- **HTML5**  
-- **CSS3** (with animations)  
-- **JavaScript**  
+## 🛠️ Tech Stack
+
+- **HTML5**
+- **CSS3** (with animations)
+- **JavaScript**
 
 ---
 
-## 🎉 How to Use  
-1. Clone the repo:  
+## 🎉 How to Use
+
+1. Clone the repo:
+
    ```bash
-   git clone https://github.com/nikitayadav19/HappyBirthdayGF.git
+   git clone https://github.com/awirut640710203/happybirthday-tongjai.git
+   cd happybirthday-tongjai
+   ```
+
+2. Serve it (see [Running it](#-running-it) above — don't just double-click
+   `index.html`, `galaxy-gallery` needs HTTP):
+
+   ```bash
+   npx http-server -p 8080 -c-1
+   ```
+
+3. Open <http://localhost:8080/> and enter the passcode.
+
+4. Make it yours — the passcode in [`js/lock.js`](js/lock.js), the name,
+   greeting, photos and timeline in the `CONFIG` block at the top of
+   [`js/script.js`](js/script.js), and your own pictures in `assets/photos/`
+   and `galaxy-gallery/photos/`.
+
+---
+
+Originally forked from [nikitayadav19/HappyBirthdayGF](https://github.com/nikitayadav19/HappyBirthdayGF);
+the lock screen, galaxy gallery, balloon game and flower garden were rebuilt
+for this version.
