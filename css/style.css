@@ -677,20 +677,38 @@ body.overlay-open {
     filter: drop-shadow(0 0 10px #ff8c00);
     opacity: 0;
     transform: translateX(-50%) scale(0);
+    transform-origin: 50% 100%;
     transition: opacity 0.45s ease, transform 0.5s var(--transition-bounce);
 }
 
 .candle.lit .candle-flame {
     opacity: 1;
     transform: translateX(-50%) scale(1);
-    animation: flameFlicker 0.6s ease-in-out infinite alternate;
+    animation: flameFlicker 1.6s ease-in-out infinite;
     /* let the pop-in settle before the flicker loop takes over the transform */
     animation-delay: 0.5s;
 }
 
+/* Three candles flickering on the exact same beat reads as mechanical, not
+   like fire — a different loop length per candle keeps them drifting in
+   and out of phase with each other instead of moving in lockstep. */
+.candle:nth-child(2) .candle-flame { animation-duration: 1.35s; animation-delay: 0.62s; }
+.candle:nth-child(3) .candle-flame { animation-duration: 1.85s; animation-delay: 0.44s; }
+
+/* A real flame doesn't breathe in and out uniformly — it darts in small,
+   uneven steps (width and height flickering independently, not a single
+   scale), drifts slightly off-centre, and the light it throws brightens
+   and dims with it. transform-origin is pinned to the wick (not centre),
+   the way a real flame stays anchored at its base and only the tip sways. */
 @keyframes flameFlicker {
-    0% { transform: translateX(-50%) scale(1) rotate(-2deg); }
-    100% { transform: translateX(-50%) scale(1.15) rotate(3deg); }
+    0%   { transform: translateX(-50%) scale(1, 1) rotate(-2deg); filter: drop-shadow(0 0 10px #ff8c00); }
+    13%  { transform: translateX(-47%) scale(0.92, 1.08) rotate(3deg); filter: drop-shadow(0 0 7px #ffab33); }
+    27%  { transform: translateX(-52%) scale(1.1, 0.9) rotate(-4deg); filter: drop-shadow(0 0 14px #ff7300); }
+    41%  { transform: translateX(-49%) scale(0.95, 1.12) rotate(2deg); filter: drop-shadow(0 0 8px #ffa500); }
+    55%  { transform: translateX(-53%) scale(1.12, 0.94) rotate(-2deg); filter: drop-shadow(0 0 15px #ff6a00); }
+    68%  { transform: translateX(-48%) scale(0.97, 1.05) rotate(3deg); filter: drop-shadow(0 0 9px #ff9d1a); }
+    82%  { transform: translateX(-51%) scale(1.06, 0.97) rotate(-1deg); filter: drop-shadow(0 0 12px #ff8200); }
+    100% { transform: translateX(-50%) scale(1, 1) rotate(1deg); filter: drop-shadow(0 0 10px #ff8c00); }
 }
 
 /* A quick spark that pops the moment a candle catches light */
@@ -994,6 +1012,94 @@ body.overlay-open {
     pointer-events: none;
 }
 
+.wax-heart-glow {
+    position: absolute;
+    inset: 20%;
+    z-index: 0;
+    border-radius: 50%;
+    background:
+        radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.78) 0 13%, rgba(255, 190, 211, 0.52) 25%, transparent 58%),
+        radial-gradient(circle, rgba(255, 216, 129, 0.42), transparent 64%);
+    filter: blur(0.2px);
+    opacity: 0.9;
+    pointer-events: none;
+}
+
+.wax-heart-icon {
+    position: relative;
+    z-index: 1;
+    width: clamp(28px, 4.3vw, 36px);
+    height: clamp(28px, 4.3vw, 36px);
+    overflow: visible;
+    transform: translateY(1px);
+    filter:
+        drop-shadow(0 2px 3px rgba(102, 0, 35, 0.25))
+        drop-shadow(0 0 9px rgba(255, 218, 128, 0.3));
+    transition: transform 220ms ease, filter 220ms ease;
+}
+
+.wax-heart-fill {
+    transform-origin: 50% 54%;
+    animation: waxHeartBeat 2.05s ease-in-out infinite;
+}
+
+.wax-heart-highlight {
+    mix-blend-mode: screen;
+}
+
+.wax-heart-spark {
+    position: absolute;
+    z-index: 2;
+    width: 8px;
+    height: 8px;
+    border-radius: 2px;
+    background: #ffe08a;
+    box-shadow:
+        0 0 8px rgba(255, 224, 138, 0.9),
+        0 0 14px rgba(255, 121, 160, 0.4);
+    clip-path: polygon(50% 0, 62% 38%, 100% 50%, 62% 62%, 50% 100%, 38% 62%, 0 50%, 38% 38%);
+    pointer-events: none;
+    animation: waxHeartSpark 1.9s ease-in-out infinite;
+}
+
+.wax-heart-spark-one {
+    top: 25%;
+    right: 25%;
+}
+
+.wax-heart-spark-two {
+    left: 26%;
+    bottom: 27%;
+    width: 6px;
+    height: 6px;
+    animation-delay: 0.72s;
+}
+
+.wax-seal-btn:active .wax-heart-icon,
+.wax-seal-btn:focus-visible .wax-heart-icon {
+    transform: translateY(1px) scale(0.94);
+    filter:
+        drop-shadow(0 1px 2px rgba(102, 0, 35, 0.26))
+        drop-shadow(0 0 12px rgba(255, 226, 145, 0.44));
+}
+
+@keyframes waxHeartBeat {
+    0%, 100% { transform: scale(1); }
+    45% { transform: scale(1.08); }
+    62% { transform: scale(0.98); }
+}
+
+@keyframes waxHeartSpark {
+    0%, 100% {
+        opacity: 0.38;
+        transform: scale(0.72) rotate(0deg);
+    }
+    48% {
+        opacity: 1;
+        transform: scale(1.16) rotate(28deg);
+    }
+}
+
 @keyframes sealPulse {
     0%, 100% {
         transform: scale(1);
@@ -1021,10 +1127,16 @@ body.overlay-open {
             inset 0 3px 0 rgba(255, 255, 255, 0.42),
             inset 0 -9px 18px rgba(98, 0, 35, 0.3);
     }
+
+    .wax-seal-btn:hover .wax-heart-icon {
+        transform: translateY(1px) scale(1.05);
+    }
 }
 
 @media (prefers-reduced-motion: reduce) {
     .wax-seal-btn::before { animation: none; }
+    .wax-heart-fill,
+    .wax-heart-spark { animation: none; }
 }
 
 
@@ -1067,32 +1179,6 @@ body.overlay-open {
     height: 100%;
     object-fit: cover;
     transition: transform 0.6s ease;
-}
-
-/* Marks each slot's position (1, 2, 3…) so a future photo swap always
-   lands in the intended spot — purely a placeholder aid, not part of
-   the finished-card design. */
-.polaroid-slot-number {
-    position: absolute;
-    top: 10px;
-    left: 10px;
-    z-index: 2;
-    min-width: 24px;
-    height: 24px;
-    padding: 0 6px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.45);
-    -webkit-backdrop-filter: blur(3px);
-    backdrop-filter: blur(3px);
-    color: #fff;
-    font-family: var(--font-body);
-    font-size: 0.78rem;
-    font-weight: 700;
-    letter-spacing: 0.02em;
-    pointer-events: none;
 }
 
 .polaroid-card:hover .polaroid-img-wrap img { transform: scale(1.08); }
@@ -1307,10 +1393,15 @@ body.overlay-open {
     width: 100%;
     height: 116px;
     object-fit: cover;
+    object-position: center;
     display: block;
     border-radius: 10px;
     margin-bottom: 10px;
     box-shadow: 0 10px 20px rgba(150, 62, 100, 0.12);
+}
+
+.timeline-item-3 .timeline-card img {
+    object-position: center 30%;
 }
 
 .timeline-kicker {

@@ -6,24 +6,24 @@ const CONFIG = {
     name: 'Tongjai',
     greetingText: "I'm so glad to have you here. May this birthday be filled with smiles and happiness!",
     photos: [
-        { src: 'assets/photos/d1.jpg', caption: 'Her Smile Says It All ✨' },
-        { src: 'assets/photos/d2.jpg', caption: 'Together Vibes 💕' },
-        { src: 'assets/photos/d3.jpg', caption: 'Pretty Soul 🌸' }
+        { src: 'gallery/S__12705803_0.jpg', caption: 'Simply Stunning ✨' },
+        { src: 'gallery/S__12705801_0.jpg', caption: 'Together Vibes 💕' },
+        { src: 'gallery/S__12705827_0.jpg', caption: 'Soft & Sweet 🌸' }
     ],
     timeline: [
         {
-            img: 'assets/photos/d1.jpg',
+            img: 'gallery/S__12705810_0.jpg',
             title: 'Her Beautiful Smile',
-            text: "You're truly one of the sweetest girls I know, and I feel lucky to have a bond like ours. ❤️"
+            text: "You're honestly one of the sweetest people I've ever met. I feel so lucky and grateful to have such a wonderful bond with you."
         },
         {
-            img: 'assets/photos/d2.jpg',
+            img: 'gallery/S__12705811_0.jpg',
             title: 'Together Vibes',
-            text: "May your journey ahead be filled with happiness, success, and endless smiles. 😊💕"
+            text: "Growing, succeeding, and smiling through life together. 😊💕"
         },
         {
-            img: 'assets/photos/d3.jpg',
-            title: 'Pretty Soul',
+            img: 'gallery/S__12705821_0.jpg',
+            title: 'Soft & Sweet',
             text: "Keep being the amazing person you are—you make every moment brighter. 🌸💖"
         }
     ],
@@ -145,16 +145,17 @@ window.addEventListener('load', () => {
     }, 100);
 });
 
-// Returning from the Galaxy Gallery (via its Home button) lands on
-// #love-letter instead of the top of the page. lock.js dispatches this the
+// Returning from companion pages lands on the chapter that launched them
+// instead of the top of the page. lock.js dispatches this the
 // moment the gate opens — for an already-unlocked session that happens
 // synchronously during parsing, before DOMContentLoaded, so this listener
 // has to be registered up here (not inside DOMContentLoaded) or it would
-// miss the event entirely. The jump is instant (scroll-behavior overridden
-// briefly) so nothing flashes the hero section first.
+// miss the event entirely. The jump is instant so nothing flashes the hero
+// section first.
 document.addEventListener('birthday:unlocked', () => {
-    if (location.hash !== '#love-letter') return;
-    const target = document.getElementById('love-letter');
+    const returnTargets = new Set(['#love-letter', '#gift-reveal']);
+    if (!returnTargets.has(location.hash)) return;
+    const target = document.getElementById(location.hash.slice(1));
     if (!target) return;
     const html = document.documentElement;
     const prevBehavior = html.style.scrollBehavior;
@@ -668,7 +669,6 @@ function init3DPolaroids() {
         card.setAttribute('aria-label', `View full photo: ${photo.caption}`);
         card.innerHTML = `
             <div class="polaroid-img-wrap">
-                <span class="polaroid-slot-number" aria-hidden="true">${idx + 1}</span>
                 <img src="${photo.src}" alt="${photo.caption}" loading="lazy" decoding="async">
             </div>
             <div class="polaroid-caption">${photo.caption}</div>
@@ -759,7 +759,7 @@ function initTimeline() {
     if (!wrapper) return;
 
     wrapper.innerHTML = CONFIG.timeline.map((m, idx) => `
-        <article class="timeline-item">
+        <article class="timeline-item timeline-item-${idx + 1}">
             <div class="timeline-dot" aria-hidden="true">${getTimelineDotIcon(idx)}</div>
             <div class="timeline-card">
                 <img src="${m.img}" alt="${m.title}" loading="lazy" decoding="async">
