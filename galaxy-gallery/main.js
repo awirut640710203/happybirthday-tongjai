@@ -9,8 +9,8 @@
      · magenta particle beam rising from the core
      · a billboarded particle heart floating above
      · glowing love-phrases lying flat on the galaxy plane
-     · 12 numbered memory hearts ringing the disc rim, rimmed in rose light
-       (tap to enlarge; drop 01.png … 12.png into photos/)
+     · 10 numbered memory hearts ringing the disc rim, rimmed in rose light
+       (tap to enlarge; drop 01.png … 10.png into photos/)
      · cinematic auto-orbit camera + drag / pinch controls
      · confetti burst transition from the intro card
    ══════════════════════════════════════════════════════════════ */
@@ -31,25 +31,25 @@ const CONFIG = {
     ],
 
     /* Numbered locket frames orbiting the disc.
-       Drop your artwork in  galaxy-gallery/photos/  named  01.png … 12.png
+       Drop your artwork in  galaxy-gallery/photos/  named  01.png … 10.png
        (any extension in `exts` works). A slot with no file on disk shows a
        numbered placeholder card, so the layout is always complete and you can
        fill the numbers in one at a time. */
     photos: {
-        count: 12,
+        count: 10,
         dir: 'photos/',
         exts: ['png', 'jpg', 'webp', 'gif'],
 
-        // world size of a card (texture is 512×600, same 0.85 ratio)
-        cardW: 8.0,
-        cardH: 9.4,
+        // world size of a card (texture is 640×750, same 0.85 ratio)
+        cardW: 9.6,
+        cardH: 11.3,
 
         // One wide garland just outside the disc rim rather than two nested
         // rings: nested rings project onto the same screen band and collide.
         // `wave` lifts every other card, so the row zigzags like a necklace
         // and neighbours never overlap even edge-on.
         rings: [
-            { count: 12, radius: 64, height: 7.5, wave: 6.0, spin: 0.042, phase: 0.30 }
+            { count: 10, radius: 64, height: 7.5, wave: 6.0, spin: 0.042, phase: 0.30 }
         ],
 
         // optional per-number caption, e.g. { 1: 'Su sonrisa' }
@@ -894,7 +894,7 @@ function buildPhrases() {
    as the outline of each photo: held in a filament of rose light, with the
    slot number written beneath in hairline type. */
 
-const CARD_TEX = { W: 512, H: 600 };
+const CARD_TEX = { W: 640, H: 750 };
 
 /* The curve sampled once, with its own bounding box, so the shape can be
    fitted to any rectangle without guessing its proportions. */
@@ -984,7 +984,7 @@ function lockFrameTexture(img, number) {
     cv.width = W; cv.height = H;
     const g = cv.getContext('2d');
 
-    const px = 30, py = 14;
+    const px = 38, py = 18;
     const pw = W - px * 2;
     // the heart keeps its own proportions; the rest of the canvas is the number
     const ph = Math.round(pw / HEART_SHAPE.aspect);
@@ -1036,7 +1036,7 @@ function lockFrameTexture(img, number) {
         // the number, ghosted onto the plate
         g.textAlign = 'center';
         g.textBaseline = 'middle';
-        g.font = '400 150px Georgia, "Playfair Display", serif';
+        g.font = '400 188px Georgia, "Playfair Display", serif';
         g.shadowColor = 'rgba(255, 150, 230, 0.5)';
         g.shadowBlur = 34;
         g.fillStyle = 'rgba(255, 238, 252, 0.17)';
@@ -1112,44 +1112,6 @@ function lockFrameTexture(img, number) {
     fourPointStar(g, cx, heartCleftY(py, ph) + 7, 15, 3.9);
     g.fill();
     g.restore();
-
-    // ── the number, written beneath the gem ──
-    const by = py + ph + 34;
-
-    g.strokeStyle = 'rgba(255, 196, 240, 0.38)';
-    g.lineWidth = 1.3;
-    [-1, 1].forEach(s => {
-        g.beginPath();
-        g.moveTo(cx + s * 26, by);
-        g.lineTo(cx + s * 112, by);
-        g.stroke();
-    });
-
-    g.textAlign = 'center';
-    g.textBaseline = 'middle';
-    g.font = '18px Georgia, serif';
-    g.fillStyle = 'rgba(255, 148, 224, 0.9)';
-    g.fillText('♥', cx, by);
-
-    g.save();
-    g.font = '400 76px Georgia, "Playfair Display", serif';
-    g.letterSpacing = '14px';
-    g.shadowColor = 'rgba(255, 110, 222, 0.95)';
-    g.shadowBlur = 28;
-    g.fillStyle = 'rgba(255, 246, 254, 0.98)';
-    g.fillText(label, cx + 7, by + 56);
-    g.fillText(label, cx + 7, by + 56);
-    g.restore();
-
-    const caption = CONFIG.photos.captions[number];
-    if (caption) {
-        g.save();
-        g.font = '400 22px Georgia, serif';
-        g.letterSpacing = '5px';
-        g.fillStyle = 'rgba(255, 226, 249, 0.6)';
-        g.fillText(caption.toUpperCase(), cx + 2, by + 110);
-        g.restore();
-    }
 
     const t = new THREE.CanvasTexture(cv);
     t.colorSpace = THREE.SRGBColorSpace;
@@ -1373,6 +1335,59 @@ const ndc = new THREE.Vector2();
 const lightbox = document.getElementById('lightbox');
 const lightboxImg = document.getElementById('lightboxImg');
 const lightboxCap = document.getElementById('lightboxCap');
+const lightboxClose = document.getElementById('lightboxClose');
+
+lightboxImg.draggable = false;
+lightboxImg.addEventListener('dragstart', (e) => e.preventDefault());
+
+/* Pinch / wheel / double-tap zoom, with drag-to-pan once zoomed in. The
+   photo is the full original file (see sprite.userData.src below), so it
+   stays sharp well past the in-scene card's own resolution — this is
+   purely a transform, nothing is ever re-encoded or upscaled server-side.
+   The image is free to spill onto the dark backdrop when zoomed/panned,
+   so there's no overflow/clipping wrapper to keep in sync. */
+const ZOOM_MIN = 1, ZOOM_MAX = 3;
+let zoom = 1, panX = 0, panY = 0;
+
+function applyZoomTransform() {
+    lightboxImg.style.transform = `translate(${panX}px, ${panY}px) scale(${zoom})`;
+    lightboxImg.classList.toggle('is-zoomed', zoom > 1.01);
+}
+
+function resetZoom() {
+    zoom = 1; panX = 0; panY = 0;
+    applyZoomTransform();
+}
+
+// originX/originY (viewport coords) is the point that should stay put
+// under the cursor/fingers while the scale changes — without this every
+// zoom recentres on the image's middle, which feels wrong under a pinch.
+function setZoom(next, originX, originY) {
+    next = Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, next));
+    if (originX !== undefined && next !== zoom) {
+        const rect = lightboxImg.getBoundingClientRect();
+        const cx = rect.left + rect.width / 2, cy = rect.top + rect.height / 2;
+        const dx = originX - cx, dy = originY - cy;
+        const ratio = next / zoom;
+        panX = dx - (dx - panX) * ratio;
+        panY = dy - (dy - panY) * ratio;
+    }
+    zoom = next;
+    if (zoom <= 1.01) { zoom = 1; panX = 0; panY = 0; }
+    applyZoomTransform();
+}
+
+function toggleZoom(x, y) { setZoom(zoom > 1.01 ? 1 : 2.4, x, y); }
+
+function openLightbox(d) {
+    lightboxImg.src = d.src;
+    lightboxImg.hidden = false;   // starts hidden so an empty src never gets fetched
+    lightboxCap.textContent = d.caption;
+    resetZoom();
+    lightbox.classList.add('open');
+}
+
+function closeLightbox() { lightbox.classList.remove('open'); }
 
 let downAt = null;
 canvas.addEventListener('pointerdown', (e) => { downAt = { x: e.clientX, y: e.clientY, t: performance.now() }; });
@@ -1387,16 +1402,92 @@ canvas.addEventListener('pointerup', (e) => {
     ndc.y = -(e.clientY / window.innerHeight) * 2 + 1;
     raycaster.setFromCamera(ndc, camera);
     const hits = raycaster.intersectObjects(frames.map(f => f.sprite), false);
-    if (hits.length) {
-        const d = hits[0].object.userData;
-        lightboxImg.src = d.src;
-        lightboxImg.hidden = false;   // starts hidden so an empty src never gets fetched
-        lightboxCap.textContent = d.caption;
-        lightbox.classList.add('open');
-    }
+    if (hits.length) openLightbox(hits[0].object.userData);
 });
 
-lightbox.addEventListener('click', () => lightbox.classList.remove('open'));
+lightboxClose.addEventListener('click', closeLightbox);
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape' && lightbox.classList.contains('open')) closeLightbox();
+});
+
+// Only the backdrop closes on tap. The photo itself never does — a plain
+// click there is also step one of a double-click-to-zoom, and closing on
+// that first click would mean double-click-to-zoom could never fire.
+lightbox.addEventListener('click', (e) => {
+    if (e.target === lightboxImg) return;
+    closeLightbox();
+});
+
+/* Wheel zoom (desktop trackpad/mouse) */
+lightboxImg.addEventListener('wheel', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setZoom(zoom * Math.exp(-e.deltaY * 0.0016), e.clientX, e.clientY);
+}, { passive: false });
+
+lightboxImg.addEventListener('dblclick', (e) => { e.stopPropagation(); toggleZoom(e.clientX, e.clientY); });
+
+/* Touch: two fingers pinch-zoom, one finger pans once zoomed, a fast
+   double-tap toggles zoom the same as dblclick does on desktop. */
+let pinch = null, dragStart = null, lastTap = 0;
+
+lightboxImg.addEventListener('touchstart', (e) => {
+    e.stopPropagation();
+    const t = e.touches;
+    if (t.length === 2) {
+        const dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY;
+        pinch = {
+            d0: Math.hypot(dx, dy) || 1,
+            zoom0: zoom,
+            cx: (t[0].clientX + t[1].clientX) / 2,
+            cy: (t[0].clientY + t[1].clientY) / 2
+        };
+        dragStart = null;
+    } else if (t.length === 1) {
+        const now = performance.now();
+        if (now - lastTap < 300) { toggleZoom(t[0].clientX, t[0].clientY); lastTap = 0; }
+        else lastTap = now;
+        if (zoom > 1.01) dragStart = { x: t[0].clientX, y: t[0].clientY, panX, panY };
+    }
+}, { passive: true });
+
+lightboxImg.addEventListener('touchmove', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    const t = e.touches;
+    if (pinch && t.length === 2) {
+        const dx = t[0].clientX - t[1].clientX, dy = t[0].clientY - t[1].clientY;
+        setZoom(pinch.zoom0 * (Math.hypot(dx, dy) || 1) / pinch.d0, pinch.cx, pinch.cy);
+    } else if (dragStart && t.length === 1) {
+        panX = dragStart.panX + (t[0].clientX - dragStart.x);
+        panY = dragStart.panY + (t[0].clientY - dragStart.y);
+        applyZoomTransform();
+    }
+}, { passive: false });
+
+lightboxImg.addEventListener('touchend', (e) => {
+    if (e.touches.length < 2) pinch = null;
+    if (e.touches.length === 0) dragStart = null;
+}, { passive: true });
+
+/* Mouse drag-to-pan once zoomed (desktop) */
+let mouseDrag = null;
+lightboxImg.addEventListener('mousedown', (e) => {
+    if (zoom <= 1.01) return;
+    e.preventDefault();
+    mouseDrag = { x: e.clientX, y: e.clientY, panX, panY };
+    lightboxImg.classList.add('is-panning');
+});
+window.addEventListener('mousemove', (e) => {
+    if (!mouseDrag) return;
+    panX = mouseDrag.panX + (e.clientX - mouseDrag.x);
+    panY = mouseDrag.panY + (e.clientY - mouseDrag.y);
+    applyZoomTransform();
+});
+window.addEventListener('mouseup', () => {
+    mouseDrag = null;
+    lightboxImg.classList.remove('is-panning');
+});
 
 /* ───────────────────── HUD buttons ───────────────────── */
 

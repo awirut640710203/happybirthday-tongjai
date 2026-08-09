@@ -2,9 +2,9 @@
 
 Drop your artwork here, named by slot number:
 
-```
-01.png  02.png  03.png  04.png  05.png  06.png
-07.png  08.png  09.png  10.png  11.png  12.png
+```text
+01.png  02.png  03.png  04.png  05.png
+06.png  07.png  08.png  09.png  10.png
 ```
 
 - `.png`, `.jpg`, `.webp` and `.gif` all work — the first one found for a
@@ -20,4 +20,4 @@ Drop your artwork here, named by slot number:
   captions: { 1: 'Her smile', 7: 'Our trip' }
   ```
 
-- More or fewer than 12? Change `CONFIG.photos.count` and the `rings` array.
+- More or fewer than 10? Change `CONFIG.photos.count` and the `rings` array.

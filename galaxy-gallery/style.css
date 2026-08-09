@@ -241,12 +241,26 @@ canvas#confetti {
 .lightbox.open .lightbox-inner { transform: scale(1); }
 
 .lightbox img {
-    max-width: min(86vw, 460px);
-    max-height: 64vh;
+    max-width: min(94vw, 900px);
+    max-height: 78vh;
     border-radius: 18px;
     border: 1px solid rgba(226, 160, 255, 0.4);
     box-shadow: 0 26px 70px rgba(0,0,0,.7), 0 0 44px rgba(226, 120, 220, 0.22);
+    /* the canvas texture upstream is small (it only has to read well from a
+       distance in 3D); this <img> loads the original file directly, so it
+       stays crisp all the way up to its own native resolution. */
+    image-rendering: auto;
+    -webkit-user-drag: none;
+    -webkit-user-select: none;
+    user-select: none;
+    touch-action: none;
+    cursor: zoom-in;
+    /* no transition here on purpose — wheel/pinch/drag all update this
+       every frame, and a transition would make them feel laggy. */
 }
+
+.lightbox img.is-zoomed { cursor: grab; }
+.lightbox img.is-panning { cursor: grabbing; }
 
 .lightbox p {
     margin-top: 16px;
@@ -255,6 +269,39 @@ canvas#confetti {
     text-transform: uppercase;
     color: rgba(255, 228, 250, 0.75);
 }
+
+.lightbox-hint {
+    margin-top: 6px !important;
+    font-size: .62rem !important;
+    letter-spacing: .14em !important;
+    color: rgba(255, 220, 250, 0.42) !important;
+    text-transform: none !important;
+}
+
+.lightbox-close {
+    position: absolute;
+    top: max(18px, env(safe-area-inset-top));
+    right: max(18px, env(safe-area-inset-right));
+    z-index: 61;
+    width: 44px;
+    height: 44px;
+    display: grid;
+    place-items: center;
+    font-size: 1.6rem;
+    line-height: 1;
+    color: #ffe7fb;
+    cursor: pointer;
+    border: 1px solid rgba(226, 160, 255, 0.32);
+    border-radius: 50%;
+    background: rgba(38, 20, 56, 0.55);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+    box-shadow: 0 6px 20px rgba(0,0,0,.45);
+    transition: transform .2s cubic-bezier(.34,1.56,.64,1), background .2s;
+}
+
+.lightbox-close:hover { transform: translateY(-2px); background: rgba(66, 34, 96, 0.7); }
+.lightbox-close:active { transform: scale(.92); }
 
 /* ═══════════════════════════════════════
    "Needs a server" notice
