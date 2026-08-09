@@ -74,68 +74,6 @@ body.overlay-open {
 }
 
 /* ═══════════════════════════════════════
-   🎵 Floating Audio Control Pill
-   ═══════════════════════════════════════ */
-.audio-control-pill {
-    position: fixed;
-    top: 24px;
-    right: 24px;
-    z-index: 10001;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 12px 24px;
-    background: rgba(255, 255, 255, 0.88);
-    /* Safari only grew unprefixed backdrop-filter in 18; every other stylesheet
-       here already carries the prefix, this file was the one that missed it. */
-    -webkit-backdrop-filter: blur(15px);
-    backdrop-filter: blur(15px);
-    border: 1.5px solid var(--glass-border);
-    border-radius: 50px;
-    box-shadow: 0 8px 30px rgba(217, 4, 41, 0.15);
-    cursor: pointer;
-    transition: all 0.35s var(--transition-bounce);
-    /* WebKit still has no unprefixed user-select at all (verified:
-       CSS.supports('user-select','none') is false) — without this a long
-       press on the iPad selects the label and pops the callout menu. */
-    -webkit-user-select: none;
-    user-select: none;
-}
-
-.audio-control-pill:hover {
-    transform: scale(1.06) translateY(-2px);
-    box-shadow: 0 12px 35px rgba(217, 4, 41, 0.25);
-    background: #ffffff;
-}
-
-.audio-icon-wrap { font-size: 1.3rem; }
-.audio-label { font-size: 0.85rem; font-weight: 700; color: var(--deep-rose); letter-spacing: 0.5px; }
-
-.music-notes-anim {
-    display: inline-flex;
-    gap: 3px;
-    align-items: flex-end;
-    height: 14px;
-}
-
-.music-bar {
-    width: 3px;
-    background: var(--deep-rose);
-    border-radius: 2px;
-    animation: musicBarAnim 1s ease-in-out infinite alternate;
-}
-.music-bar:nth-child(1) { height: 40%; animation-delay: 0s; }
-.music-bar:nth-child(2) { height: 100%; animation-delay: 0.2s; }
-.music-bar:nth-child(3) { height: 60%; animation-delay: 0.4s; }
-
-.audio-control-pill.muted .music-bar { animation: none !important; height: 20% !important; background: #aaa; }
-
-@keyframes musicBarAnim {
-    0% { height: 20%; }
-    100% { height: 100%; }
-}
-
-/* ═══════════════════════════════════════
    Section Base Layout (Fluid Clamping & Symmetry)
    ═══════════════════════════════════════ */
 .section {
@@ -1402,11 +1340,11 @@ body.overlay-open {
 }
 
 /* ═══════════════════════════════════════
-   🌌 Section 7: Aurora & Fireworks Grand Finale
+   🌌 Section 7: Aurora Grand Finale
    ═══════════════════════════════════════ */
 /* Warm rose finale that closes the page in the same palette it opened
    with — a soft blush glow rather than the old night-sky navy, so the
-   fireworks read as pastel confetti light instead of a dark backdrop. */
+   background reads as pastel confetti light instead of a dark backdrop. */
 #finale {
     background:
         radial-gradient(circle at 50% 42%, rgba(255, 255, 255, 0.9) 0%, rgba(255, 240, 243, 0) 55%),
@@ -1440,12 +1378,6 @@ body.overlay-open {
     inset: 0;
     z-index: 0;
     pointer-events: none;
-}
-
-#fireworks-canvas {
-    position: absolute;
-    inset: 0;
-    z-index: 1;
 }
 
 .finale-bg-decorations {
@@ -1632,9 +1564,6 @@ body.overlay-open {
         width: 52px;
         height: 52px;
     }
-    .audio-control-pill {
-        padding: 14px 26px;
-    }
 }
 
 /* Tablet Portrait Specific (820px - 834px iPad Gen 11) */
@@ -1734,8 +1663,6 @@ body.overlay-open {
         height: 74px;
         font-size: 2.15rem;
     }
-    .audio-control-pill { top: 16px; right: 16px; padding: 10px 18px; }
-    .audio-label { font-size: 0.78rem; }
 }
 
 /* Short viewports — tighten the hero glow so it can't wash out the CTA */

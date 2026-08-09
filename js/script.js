@@ -37,7 +37,7 @@ const CONFIG = {
 const REDUCED_MOTION = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
 
 // Retina-crisp canvas sizing (iPad Gen 11 is a @2x display — without this the
-// particles and fireworks render soft/blurry).
+// particles render soft/blurry).
 function fitCanvas(canvas, host) {
     const dpr = Math.min(window.devicePixelRatio || 1, 2);
     const w = host.offsetWidth;
@@ -107,7 +107,6 @@ const sounds = new SoundEngine();
 
 // ─── Initialize Everything on Load ───
 document.addEventListener('DOMContentLoaded', () => {
-    initAudioPill();
     initParticles();
     initCandles();
     initEnvelopeModal();
@@ -115,7 +114,6 @@ document.addEventListener('DOMContentLoaded', () => {
     initTimeline();
     initLightbox();
     initScrollAnimations();
-    initFireworks();
     initFinaleParticles();
     initCursorSparkles();
     initKeyboardShortcuts();
@@ -164,31 +162,6 @@ document.addEventListener('birthday:unlocked', () => {
     target.scrollIntoView({ block: 'start' });
     html.style.scrollBehavior = prevBehavior;
 }, { once: true });
-
-/* ═══════════════════════════════════════
-   🎵 Audio Control Pill
-   ═══════════════════════════════════════ */
-function initAudioPill() {
-    const pill = document.getElementById('audio-control-pill');
-    const label = document.getElementById('audio-label');
-    const icon = document.getElementById('audio-icon');
-
-    if (!pill) return;
-
-    pill.addEventListener('click', () => {
-        sounds.muted = !sounds.muted;
-        if (sounds.muted) {
-            pill.classList.add('muted');
-            label.textContent = 'Sound FX: OFF';
-            icon.textContent = '🔇';
-        } else {
-            pill.classList.remove('muted');
-            label.textContent = 'Sound FX: ON';
-            icon.textContent = '🎵';
-            sounds.playMagicPop();
-        }
-    });
-}
 
 /* ═══════════════════════════════════════
    Hero Landing & Typewriter
@@ -834,220 +807,6 @@ function initScrollAnimations() {
         });
     });
 
-}
-
-/* ═══════════════════════════════════════
-   🌌 Fireworks (Finale)
-   ═══════════════════════════════════════ */
-function initFireworks() {
-    const canvas = document.getElementById('fireworks-canvas');
-    const sec = document.getElementById('finale');
-    if (!canvas || !sec || REDUCED_MOTION) return;
-
-    const ctx = canvas.getContext('2d');
-    let running = true;
-    let rafId = null;
-    let sparks = [];
-    let rockets = [];
-    let cooldown = 0;
-    let size = { w: 0, h: 0 };
-
-    const TAU = Math.PI * 2;
-
-    function resize() {
-        size = fitCanvas(canvas, sec);
-    }
-    resize();
-    window.addEventListener('resize', debounce(resize, 150));
-
-    /* Saturated, vibrant celebratory palette (hot rose, magenta, gold, violet, electric pink) */
-    const SPARK_COLORS = [
-        [217, 4, 41],     // deep rose
-        [255, 42, 84],    // hot pink
-        [255, 0, 128],    // vivid magenta
-        [155, 44, 244],   // violet gold
-        [255, 177, 0],    // electric gold
-        [255, 77, 109]    // crimson rose
-    ];
-    const pickColor = () => SPARK_COLORS[(Math.random() * SPARK_COLORS.length) | 0];
-
-    function shade(rgb) {
-        const d = () => (Math.random() - 0.5) * 30;
-        return [
-            Math.max(0, Math.min(255, rgb[0] + d())),
-            Math.max(0, Math.min(255, rgb[1] + d())),
-            Math.max(0, Math.min(255, rgb[2] + d()))
-        ];
-    }
-
-    function glowDot(x, y, radius, rgb, alpha) {
-        const [r, g, b] = rgb;
-        const halo = radius * 3.5;
-        const grad = ctx.createRadialGradient(x, y, 0, x, y, halo);
-        grad.addColorStop(0, `rgba(${r|0},${g|0},${b|0},${Math.min(1, alpha * 0.8)})`);
-        grad.addColorStop(1, `rgba(${r|0},${g|0},${b|0},0)`);
-        ctx.globalAlpha = 1;
-        ctx.fillStyle = grad;
-        ctx.beginPath();
-        ctx.arc(x, y, halo, 0, TAU);
-        ctx.fill();
-
-        ctx.globalAlpha = Math.min(1, alpha * 1.2);
-        ctx.fillStyle = `rgb(${r|0},${g|0},${b|0})`;
-        ctx.beginPath();
-        ctx.arc(x, y, radius, 0, TAU);
-        ctx.fill();
-    }
-
-    class Spark {
-        constructor(x, y, angle, speed, rgb, life) {
-            this.x = x;
-            this.y = y;
-            this.vx = Math.cos(angle) * speed;
-            this.vy = Math.sin(angle) * speed;
-            this.rgb = rgb;
-            this.life = life;
-            this.maxLife = life;
-            this.radius = Math.random() * 2.2 + 2.2;
-            this.phase = Math.random() * TAU;
-        }
-        update() {
-            this.vx *= 0.965;
-            this.vy *= 0.965;
-            this.vy += 0.05;
-            this.x += this.vx;
-            this.y += this.vy;
-            this.life--;
-        }
-        draw() {
-            const t = Math.max(0, this.life / this.maxLife);
-            let a = Math.pow(t, 1.1);
-            if (t < 0.6) a *= 0.72 + 0.28 * Math.sin(this.phase + (1 - t) * 24);
-            a = Math.max(0, Math.min(1, a));
-            glowDot(this.x, this.y, this.radius, this.rgb, a);
-        }
-        get dead() { return this.life <= 0; }
-    }
-
-    const ROCKET_GRAVITY = 0.13;
-
-    class Rocket {
-        constructor() {
-            this.x = size.w * (0.12 + Math.random() * 0.76);
-            this.y = size.h + 8;
-            this.targetY = size.h * (0.12 + Math.random() * 0.32);
-            const rise = Math.max(60, this.y - this.targetY);
-            this.vy = -Math.sqrt(2 * ROCKET_GRAVITY * rise);
-            this.rgb = pickColor();
-            this.heart = Math.random() < 0.4;
-            this.trail = [];
-        }
-        update() {
-            this.trail.push({ x: this.x, y: this.y });
-            if (this.trail.length > 8) this.trail.shift();
-            this.vy += ROCKET_GRAVITY;
-            this.y += this.vy;
-        }
-        draw() {
-            const [r, g, b] = this.rgb;
-            ctx.globalAlpha = 1;
-            ctx.lineCap = 'round';
-            for (let i = 1; i < this.trail.length; i++) {
-                const p0 = this.trail[i - 1];
-                const p1 = this.trail[i];
-                const f = i / this.trail.length;
-                ctx.strokeStyle = `rgba(${r|0},${g|0},${b|0},${f * 0.7})`;
-                ctx.lineWidth = 0.8 + f * 3.2;
-                ctx.beginPath();
-                ctx.moveTo(p0.x, p0.y);
-                ctx.lineTo(p1.x, p1.y);
-                ctx.stroke();
-            }
-            glowDot(this.x, this.y, 3.2, this.rgb, 1);
-        }
-        get ready() { return this.y <= this.targetY || this.vy >= -0.7; }
-    }
-
-    function burstRing(x, y, rgb) {
-        const count = 38 + (Math.random() * 14 | 0);
-        const base = 3.6 + Math.random() * 1.6;
-        for (let i = 0; i < count; i++) {
-            const angle = (i / count) * TAU + Math.random() * 0.07;
-            const speed = base * (0.8 + Math.random() * 0.4);
-            sparks.push(new Spark(x, y, angle, speed, shade(rgb), 58 + Math.random() * 24));
-        }
-    }
-
-    function burstHeart(x, y, rgb) {
-        const count = 52;
-        const scale = (0.28 + Math.random() * 0.08);
-        for (let i = 0; i < count; i++) {
-            const t = (i / count) * TAU;
-            const hx = 16 * Math.pow(Math.sin(t), 3);
-            const hy = -(13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t));
-            sparks.push(new Spark(
-                x, y,
-                Math.atan2(hy, hx),
-                Math.hypot(hx, hy) * scale,
-                shade(rgb),
-                68 + Math.random() * 22
-            ));
-        }
-    }
-
-    function explode(rocket) {
-        if (rocket.heart) burstHeart(rocket.x, rocket.y, rocket.rgb);
-        else burstRing(rocket.x, rocket.y, rocket.rgb);
-        sounds.playChime(760 + Math.random() * 420, 0.22);
-    }
-
-    function animate() {
-        rafId = null;
-        if (!running || document.hidden) return;
-
-        ctx.globalAlpha = 1;
-        ctx.globalCompositeOperation = 'destination-out';
-        ctx.fillStyle = 'rgba(0, 0, 0, 0.16)';
-        ctx.fillRect(0, 0, size.w, size.h);
-        ctx.globalCompositeOperation = 'source-over';
-
-        if (--cooldown <= 0 && rockets.length < 4) {
-            rockets.push(new Rocket());
-            cooldown = 18 + (Math.random() * 25 | 0);
-        }
-
-        rockets = rockets.filter(r => {
-            r.update();
-            if (r.ready) { explode(r); return false; }
-            r.draw();
-            return true;
-        });
-
-        sparks = sparks.filter(s => {
-            s.update();
-            s.draw();
-            return !s.dead;
-        });
-
-        ctx.globalAlpha = 1;
-        rafId = requestAnimationFrame(animate);
-    }
-
-    function play() {
-        if (running && rafId === null && !document.hidden) rafId = requestAnimationFrame(animate);
-    }
-
-    document.addEventListener('visibilitychange', play);
-
-    if (typeof IntersectionObserver !== 'undefined') {
-        new IntersectionObserver(entries => {
-            running = entries[0].isIntersecting;
-            if (running) play();
-        }, { threshold: 0.01 }).observe(sec);
-    } else {
-        running = true;
-        play();
-    }
 }
 
 /* ═══════════════════════════════════════
