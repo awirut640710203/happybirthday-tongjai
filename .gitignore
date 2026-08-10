@@ -8,3 +8,4 @@ archive/
 # OS / editor cruft
 .DS_Store
 Thumbs.db
+.vscode/

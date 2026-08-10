@@ -18,6 +18,9 @@ npx http-server -p 8080 -c-1
 
 then open <http://localhost:8080/>.
 
+ก่อน commit หรือ deploy ทุกครั้ง ให้ทำตาม [Production Release Checklist](docs/PRODUCTION_RELEASE_CHECKLIST.md)
+เพื่อให้โค้ดที่บันทึกใน Git, โค้ดที่ push และเวอร์ชันบน production ตรงกัน
+
 > [!IMPORTANT]
 > Serve it over HTTP rather than double-clicking `index.html`. The main page
 > works either way, but `galaxy-gallery` is built with ES modules, which a
