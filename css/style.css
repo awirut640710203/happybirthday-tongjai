@@ -1147,9 +1147,14 @@ body.overlay-open {
     padding: clamp(85px, 10vh, 120px) 24px;
 }
 
+/* Two columns, not auto-fill. auto-fill packed 3 across at this container's
+   width, which left the 4th card stranded alone on a second row — the same
+   lopsided shape iPad had at 3 photos. A fixed pair keeps the wall a square
+   2x2 on every screen from tablet up, matching IPAD_DESIGN_REQUIREMENTS.md
+   §2.1. Phones drop to one column below 768px. */
 .polaroid-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
+    grid-template-columns: repeat(2, 1fr);
     gap: 35px;
     width: 100%;
     perspective: 1000px;
@@ -1174,10 +1179,16 @@ body.overlay-open {
     border-radius: 8px;
 }
 
+/* The frame is wider than it is tall, so a portrait photo gets cropped top
+   and bottom — and centring that crop cuts the face off, since faces sit in
+   the upper third of a phone snapshot. --focus lets each picture nominate
+   its own vertical anchor (set per photo in CONFIG.photos); anything without
+   one keeps the plain centre crop. */
 .polaroid-img-wrap img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    object-position: var(--focus, 50% 50%);
     transition: transform 0.6s ease;
 }
 

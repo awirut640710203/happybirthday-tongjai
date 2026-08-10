@@ -5,10 +5,18 @@
 const CONFIG = {
     name: 'Tongjai',
     greetingText: "I'm so glad to have you here. May this birthday be filled with smiles and happiness!",
+    // Four, not three: the grid is two columns from 768px up (iPad included),
+    // so an odd count leaves the last card stranded alone on its own row.
+    // Keep this list even if you swap the pictures out.
+    // `focus` is the crop anchor (a CSS object-position). The frame is wider
+    // than it is tall, so a tall photo loses its top and bottom — and the
+    // default centre crop lands below the face. Lower the second number to
+    // pull the visible window UP toward the head. Omit it for a centre crop.
     photos: [
         { src: 'gallery/S__12705803_0.jpg', caption: 'Simply Stunning ✨' },
         { src: 'gallery/S__12705801_0.jpg', caption: 'Together Vibes 💕' },
-        { src: 'gallery/S__12705827_0.jpg', caption: 'Soft & Sweet 🌸' }
+        { src: 'gallery/S__12705827_0.jpg', caption: 'Soft & Sweet 🌸', focus: '50% 22%' },
+        { src: 'gallery/S__12705812_0.jpg', caption: 'Pure Magic ✨', focus: '50% 20%' }
     ],
     timeline: [
         {
@@ -673,6 +681,9 @@ function init3DPolaroids() {
             </div>
             <div class="polaroid-caption">${photo.caption}</div>
         `;
+
+        // Crop anchor, read by .polaroid-img-wrap img's object-position.
+        if (photo.focus) card.style.setProperty('--focus', photo.focus);
 
         // 3D Parallax Tilt — pointer only, so it never sticks after a tap on iPad.
         card.addEventListener('pointermove', (e) => {
