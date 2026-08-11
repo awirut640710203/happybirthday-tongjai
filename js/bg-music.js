@@ -125,16 +125,30 @@
         return audio;
     }
 
+    // Armed proactively now (see resumeIfPlaying below), not only after a
+    // confirmed rejection — which means it can end up armed at the same
+    // time an automatic attempt goes on to succeed. disarmFallback() is
+    // what keeps that safe: once play() genuinely succeeds, any listener
+    // still waiting for "the first tap" is torn down, so a later, unrelated
+    // tap can't fire retry() and yank currentTime back to the stale saved
+    // position.
     var fallbackArmed = false;
+    var fallbackRetry = null;
+    function disarmFallback() {
+        if (!fallbackArmed) return;
+        fallbackArmed = false;
+        document.removeEventListener('pointerdown', fallbackRetry, true);
+        document.removeEventListener('keydown', fallbackRetry, true);
+        document.removeEventListener('touchstart', fallbackRetry, true);
+        fallbackRetry = null;
+    }
+
     function armResumeFallback(a, getPos) {
         if (fallbackArmed) return;
         fallbackArmed = true;
 
-        var retry = function () {
-            document.removeEventListener('pointerdown', retry, true);
-            document.removeEventListener('keydown', retry, true);
-            document.removeEventListener('touchstart', retry, true);
-            fallbackArmed = false;
+        fallbackRetry = function () {
+            disarmFallback();
             // This IS the gesture — Safari requires play() to happen in the
             // same synchronous tick as a real pointerdown/keydown/touchstart,
             // so this deliberately skips the loadeddata/seeked choreography
@@ -146,16 +160,20 @@
             try { a.currentTime = getPos(); } catch (e) {}
             attemptPlay(a, getPos);
         };
-        document.addEventListener('pointerdown', retry, true);
-        document.addEventListener('keydown', retry, true);
-        document.addEventListener('touchstart', retry, true);
+        document.addEventListener('pointerdown', fallbackRetry, true);
+        document.addEventListener('keydown', fallbackRetry, true);
+        document.addEventListener('touchstart', fallbackRetry, true);
     }
 
     function attemptPlay(a, getPos) {
         var p;
         try { p = a.play(); } catch (e) { armResumeFallback(a, getPos); return; }
-        if (p && typeof p.catch === 'function') {
-            p.catch(function () { armResumeFallback(a, getPos); });
+        if (p && typeof p.then === 'function') {
+            p.then(disarmFallback).catch(function () { armResumeFallback(a, getPos); });
+        } else {
+            // No promise returned at all (very old engines) — nothing to
+            // await; assume it went through.
+            disarmFallback();
         }
     }
 
@@ -196,11 +214,24 @@
     // Re-checks sessionStorage and, if we still believe the song should be
     // playing, seeks/resumes the shared element. Used at page load, at
     // bfcache restore, and by the `pause` listener above.
+    //
+    // Arms the tap-to-resume fallback immediately, in parallel with the
+    // automatic attempt below — NOT sequentially, only once that attempt
+    // has been rejected. The automatic path has to wait for the element to
+    // buffer enough to seek reliably (see seekAndPlay) before it even calls
+    // play(), which on a real network can take a real moment; if the
+    // visitor's first tap on the page lands before that, arming the
+    // fallback only afterwards means that tap is wasted and the fallback
+    // sits there unarmed until a second, unprompted tap happens — which
+    // reads as "the music is stuck silent." Arming both at once closes
+    // that gap: whichever actually manages to call play() first wins.
     function resumeIfPlaying() {
         var state = loadState();
         if (!state || !state.playing) return;
         var a = ensureAudio();
-        seekAndPlay(a, function () { return state.pos || 0; });
+        var getPos = function () { return state.pos || 0; };
+        armResumeFallback(a, getPos);
+        seekAndPlay(a, getPos);
     }
 
     var suppressPauseRecovery = false;
