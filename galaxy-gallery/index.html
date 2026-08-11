@@ -17,7 +17,7 @@
         || h === 'localhost' || h === '::1' || h === '[::1]'
         || /^127\./.test(h) || /^(10|192\.168|169\.254)\./.test(h)
         || /^172\.(1[6-9]|2\d|3[01])\./.test(h) || /\.local$/.test(h);
-      var v = window.__ASSET_V = dev ? 'dev' + Date.now() : '2026-08-11-production-1';
+      var v = window.__ASSET_V = dev ? 'dev' + Date.now() : '2026-08-11-production-2';
       document.write('<link rel="stylesheet" href="style.css?v=' + v + '">');
     })();
   </script>
@@ -100,12 +100,6 @@
        blocks outright, and the failure only ever lands in the console — the
        visitor just sees an unexplained black screen. Say so plainly instead,
        and only boot the scene where it can actually run. -->
-  <!-- Background-music resume — a plain classic script, unlike main.js
-       below, so it keeps working even on file:// where the ES module is
-       blocked and the 3D scene can't load. Written before the file://
-       branch on purpose: the song should survive this page regardless of
-       whether the gallery itself can run here. -->
-  <script>document.write('<script src="../js/bg-music.js?v=' + window.__ASSET_V + '"><\/script>');</script>
   <script>
     (function () {
       if (location.protocol === 'file:') {

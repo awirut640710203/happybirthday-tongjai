@@ -145,6 +145,10 @@
         if (opening) return;
         opening = true;
 
+        // flowers-for-you doesn't load bg-music.js — the music stays behind
+        // and picks back up from this exact spot if the visitor comes home.
+        if (window.BGMusic && window.BGMusic.leavingPage) window.BGMusic.leavingPage();
+
         gift.setAttribute('aria-disabled', 'true');
         gift.classList.add('is-open');
         wrap.classList.add('is-open');

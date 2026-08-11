@@ -1,47 +1,50 @@
 /* ═══════════════════════════════════════════════════════
-   🎵 Background music — starts the instant the gate opens,
-   then survives every full-page navigation on the site
-   (galaxy-gallery, flowers-for-you, balloon-pop, gift-reveal
-   and back to the letter) by resuming from the right position.
+   🎵 Background music — starts the instant the gate opens, and only
+   ever plays on THIS page (index.html). Deliberately silent on
+   galaxy-gallery / flowers-for-you / balloon-pop: those pages don't
+   even load this file, so nothing plays there. Two things pause it
+   here and resume it later from the same spot:
 
-   Why this needs care, not just `new Audio().play()`:
+   1. Leaving the page (wax seal → galaxy-gallery, gift box → flowers-
+      for-you): the navigation-trigger code calls `BGMusic.leavingPage()`
+      right before it navigates, which pauses and saves the exact
+      position. Coming back (the subpages' Home buttons land back on
+      this same URL) re-loads this script fresh and resumes from that
+      saved position.
 
-   1. Every one of those pages is a *separate* HTML document — this
-      is not a single-page app. A full navigation always tears down
-      the old page's Audio element and JS state, so there is no way
-      to keep one Audio instance literally playing across pages.
+   2. The candle-blow feature (js/script.js) opens the microphone to
+      listen for blowing — on phones this can audibly degrade or duck
+      whatever else is playing while the mic is live, so it calls
+      `BGMusic.pause()` right when the mic opens and `BGMusic.resume()`
+      right when it's released, on the same live element (no page
+      reload involved, so no seeking needed either way).
 
-      The position to resume at is derived from a wall-clock anchor
-      (`{ startedAt, startPos }` saved once, when the song starts)
-      rather than by reading `audio.currentTime` on the way out. That
-      matters: browsers commonly reset a media element's playback
-      state as part of tearing a document down, and that reset can
-      fire one last `timeupdate` at currentTime 0 right as the page
-      navigates away — sampling the *live* element at that exact
-      moment is exactly the wrong time to trust it. Wall-clock elapsed
-      time doesn't care what the old document's Audio element did on
-      its way out, so it can't be clobbered by that teardown.
+   Why even the simple cases need care, not just `new Audio().play()`:
 
-   2. Safari (especially iOS) requires a genuine user gesture before
-      it will let JS start audio with sound — and it does NOT treat a
-      link/JS navigation as a gesture inside the *new* document. So on
-      every page load we first try to resume automatically (works on
-      Chrome/Firefox, which do carry the gesture across a same-tab
-      navigation); if that promise rejects, we arm a one-shot listener
-      on the very next tap/keypress on that page and resume there
-      instead. Every page here already requires interaction (photos,
-      balloons, flowers, the keypad), so that's effectively instant.
-
-   3. On the lock screen specifically, the passcode's auto-submit is
-      fired from `setTimeout(submit, 230)` (see lock.js) — a real tap
-      happened, but 230ms later that stack frame is no longer a
-      "user gesture" as far as the browser's autoplay policy is
-      concerned. So lock.js calls `BGMusic.arm()` on the very first
-      tap/keypress on the keypad — that's a genuine gesture, and it
-      quietly (muted) plays+pauses the audio element to unlock it for
-      the rest of this page's lifetime. When `unlock()` later calls
-      `BGMusic.start()`, the element is already unlocked and the real
-      play() succeeds even from inside the delayed callback.
+   - Safari (especially iOS) requires a genuine user gesture before it
+     will let JS start audio with sound, and does NOT treat a link/JS
+     navigation as a gesture inside the *new* document. So on load we
+     first try to resume automatically (works on Chrome/Firefox, which
+     do carry the gesture across a same-tab navigation); if that
+     promise rejects, we arm a one-shot listener on the very next
+     tap/keypress on the page and resume there instead.
+   - On the lock screen specifically, the passcode's auto-submit fires
+     from `setTimeout(submit, 230)` (see lock.js) — a real tap
+     happened, but 230ms later that stack frame is no longer a "user
+     gesture" as far as the browser's autoplay policy is concerned. So
+     lock.js calls `BGMusic.arm()` on the very first tap/keypress on
+     the keypad — a genuine gesture — which quietly (muted) plays and
+     pauses the element to unlock it for the rest of this page's
+     lifetime. When `unlock()` later calls `BGMusic.start()`, the
+     element is already unlocked and the real play() succeeds even
+     from inside that delayed callback.
+   - Seeking a just-created element is its own two-stage race: at
+     `readyState HAVE_METADATA` (1) no real media data is necessarily
+     buffered yet, and a seek there can be silently ignored (observed
+     empirically — currentTime read back as 0 immediately after being
+     set, no exception thrown). Waiting for `loadeddata`/`canplay`
+     (readyState >= 2) first, then confirming with the `seeked` event
+     before calling play(), makes the seek actually land.
    ═══════════════════════════════════════════════════════ */
 
 (function () {
@@ -70,31 +73,14 @@
         } catch (e) { return null; }
     }
 
-    // `startedAt` (epoch ms) + `startPos` (seconds) anchor a timeline:
-    // "at this wall-clock moment, playback was at this position." Any
-    // later reader computes the current position from elapsed real time,
-    // so it never depends on reading a live Audio element at a moment
-    // that might be mid-teardown. `duration` is filled in once known,
-    // purely so a resume can wrap correctly if the song has looped.
-    function saveState(startedAt, startPos, duration) {
+    // `pos` is the last known playback position, in seconds. That's all
+    // that's needed now — the song never plays on any page other than
+    // this one, so there's no elapsed-real-time gap to account for like a
+    // multi-page-playing design would need.
+    function saveState(pos) {
         try {
-            sessionStorage.setItem(STORAGE_KEY, JSON.stringify({
-                playing: true, startedAt: startedAt, startPos: startPos, duration: duration || null
-            }));
+            sessionStorage.setItem(STORAGE_KEY, JSON.stringify({ playing: true, pos: pos || 0 }));
         } catch (e) { /* private-mode storage can throw — music still plays, just won't resume later */ }
-    }
-
-    function updateStoredDuration(duration) {
-        var state = loadState();
-        if (!state || !state.playing || state.duration) return;
-        state.duration = duration || null;
-        try { sessionStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
-    }
-
-    function computePos(state) {
-        var pos = (Date.now() - state.startedAt) / 1000 + (state.startPos || 0);
-        if (state.duration && state.duration > 0 && pos > state.duration) pos = pos % state.duration;
-        return pos < 0 ? 0 : pos;
     }
 
     var audio = null;
@@ -113,12 +99,27 @@
             try { audio.currentTime = 0; audio.play().catch(function () {}); } catch (e) {}
         });
 
-        audio.addEventListener('loadedmetadata', function () {
-            updateStoredDuration(audio.duration);
+        // Keeps the saved position fresh in case the page goes away in a
+        // way that isn't leavingPage() below (back button, closed tab,
+        // anything not explicitly hooked) — a generic safety net on top of
+        // the precise, deliberate saves at the two known exit points.
+        audio.addEventListener('timeupdate', function () {
+            saveState(audio.currentTime);
         });
 
         audio.addEventListener('error', function () {
             try { console.warn('[bg-music] could not load', AUDIO_URL); } catch (e) {}
+        });
+
+        // Mobile browsers can pause a playing <audio> element out from
+        // under a page for reasons that never touch our own code and
+        // never reject a play() promise (an incoming call, another app
+        // grabbing the audio session, etc.) — this is the generic recovery
+        // for that. Deliberate pauses (arm(), pause(), leavingPage()) flag
+        // markIntentionalPause() first so this doesn't fight them.
+        audio.addEventListener('pause', function () {
+            if (suppressPauseRecovery) return;
+            resumeIfPlaying();
         });
 
         return audio;
@@ -158,20 +159,6 @@
         }
     }
 
-    // Seeking a freshly-created element is a two-stage race, not one:
-    //
-    //   1. `readyState HAVE_METADATA` (1) only means duration/dimensions are
-    //      known — no actual media data has necessarily buffered yet. Seeking
-    //      here can be silently ignored (observed empirically: `currentTime`
-    //      read back as 0 immediately after being set, no exception thrown).
-    //      Waiting for `loadeddata`/`canplay` (readyState >= 2) instead, where
-    //      at least one frame of real data is buffered, makes the seek land.
-    //   2. Even then, the seek itself is asynchronous — setting `currentTime`
-    //      queues it, and the browser confirms completion with a `seeked`
-    //      event. Calling `play()` before that fires risks starting from
-    //      wherever playback already was. A short timeout is a safety net in
-    //      case `seeked` never fires for some edge case (e.g. seeking to the
-    //      position it's already at).
     function seekAndPlay(a, getPos) {
         function performSeek() {
             var target = getPos();
@@ -206,13 +193,24 @@
         a.addEventListener('error', onReady, { once: true });
     }
 
-    // Runs on every single page load. If the last page left the song
-    // playing, pick it back up at the wall-clock-correct position.
+    // Re-checks sessionStorage and, if we still believe the song should be
+    // playing, seeks/resumes the shared element. Used at page load, at
+    // bfcache restore, and by the `pause` listener above.
     function resumeIfPlaying() {
         var state = loadState();
         if (!state || !state.playing) return;
         var a = ensureAudio();
-        seekAndPlay(a, function () { return computePos(state); });
+        seekAndPlay(a, function () { return state.pos || 0; });
+    }
+
+    var suppressPauseRecovery = false;
+    function markIntentionalPause() {
+        suppressPauseRecovery = true;
+        // `pause()` firing its `pause` event is spec'd as a queued task, not
+        // synchronous, so this can't just be reset on the next line — but it
+        // also shouldn't stay armed indefinitely if that event never shows
+        // up for some reason, so back it with a short timeout too.
+        setTimeout(function () { suppressPauseRecovery = false; }, 200);
     }
 
     // Fires on a genuine user gesture (first tap/keypress on the lock
@@ -226,6 +224,7 @@
         var a = ensureAudio();
         a.muted = true;
         var finish = function () {
+            markIntentionalPause();
             try { a.pause(); a.currentTime = 0; } catch (e) {}
             a.muted = false;
         };
@@ -239,14 +238,42 @@
     function start() {
         var a = ensureAudio();
         a.muted = false;
-        var startedAt = Date.now();
-        saveState(startedAt, 0, a.duration || null);
+        saveState(0);
         seekAndPlay(a, function () { return 0; });
+    }
+
+    // Same-document pause/resume — for a caller that knows it's about to do
+    // something that competes for the audio session (the mic, for the
+    // candle-blow feature) and wants it back afterwards. No seeking: the
+    // element already has the right currentTime, it just needs to keep
+    // playing from there once whatever needed quiet is done.
+    function pauseMusic() {
+        if (!audio) return;
+        markIntentionalPause();
+        try { audio.pause(); } catch (e) {}
+    }
+    function resumeMusic() {
+        if (!audio) return;
+        attemptPlay(audio, function () { return audio.currentTime; });
+    }
+
+    // Call right before navigating away to a page that doesn't load this
+    // script — pauses and saves the exact position so the next time this
+    // page loads (via that page's Home button, or any other route back
+    // here) it picks up right where it left off instead of restarting.
+    function leavingPage() {
+        if (!audio) return;
+        markIntentionalPause();
+        try { audio.pause(); } catch (e) {}
+        saveState(audio.currentTime);
     }
 
     window.BGMusic = {
         arm: arm,
         start: start,
+        pause: pauseMusic,
+        resume: resumeMusic,
+        leavingPage: leavingPage,
         // Read-only introspection of the live element — for manual console
         // debugging only, nothing on the site depends on this.
         _debug: function () {
@@ -259,11 +286,9 @@
 
     // A page restored from bfcache (Back/Forward) keeps its old Audio
     // element, but the browser typically paused it on the way into the
-    // cache. Resume it, and reseek — real time kept moving while frozen.
+    // cache — nudge it awake again.
     window.addEventListener('pageshow', function (e) {
-        if (!e.persisted || !audio) return;
-        var state = loadState();
-        if (state && state.playing) seekAndPlay(audio, function () { return computePos(state); });
+        if (e.persisted && audio && audio.paused) resumeIfPlaying();
     });
 
     resumeIfPlaying();

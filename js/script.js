@@ -419,6 +419,12 @@ function initCandles() {
         setHint('Requesting microphone access…');
         try {
             micStream = await navigator.mediaDevices.getUserMedia({ audio: true });
+            // A live mic stream can audibly degrade whatever else is
+            // playing on a phone (echo cancellation / sample-rate
+            // wrangling sharing the audio session) — pause the background
+            // music for as long as the mic stays open; stopMic() below
+            // brings it back.
+            if (window.BGMusic && window.BGMusic.pause) window.BGMusic.pause();
             audioCtx = new (window.AudioContext || window.webkitAudioContext)();
             if (audioCtx.state === 'suspended') await audioCtx.resume();
             const source = audioCtx.createMediaStreamSource(micStream);
@@ -454,6 +460,10 @@ function initCandles() {
         if (micStream) { micStream.getTracks().forEach(t => t.stop()); micStream = null; }
         if (audioCtx) { audioCtx.close().catch(() => {}); audioCtx = null; }
         analyser = null;
+        // Mirrors the pause() call in ensureMic() above — safe to call even
+        // when the mic was never actually opened (denied/unsupported/never
+        // requested), since resuming an already-playing element is a no-op.
+        if (window.BGMusic && window.BGMusic.resume) window.BGMusic.resume();
     }
 
     function chargeStep() {
@@ -593,6 +603,9 @@ function initEnvelopeModal() {
         // them — the Home button in the gallery brings them back here,
         // and the candles should be waiting lit, not reset to unlit.
         try { sessionStorage.setItem('bd_candles_done', '1'); } catch (err) { }
+        // galaxy-gallery doesn't load bg-music.js — the music stays behind
+        // and picks back up from this exact spot if the visitor comes home.
+        if (window.BGMusic && window.BGMusic.leavingPage) window.BGMusic.leavingPage();
         window.location.href = 'galaxy-gallery/index.html';
     };
 
