@@ -23,7 +23,7 @@
         || h === 'localhost' || h === '::1' || h === '[::1]'
         || /^127\./.test(h) || /^(10|192\.168|169\.254)\./.test(h)
         || /^172\.(1[6-9]|2\d|3[01])\./.test(h) || /\.local$/.test(h);
-      var v = window.__ASSET_V = dev ? 'dev' + Date.now() : '2026-08-10-production-1';
+      var v = window.__ASSET_V = dev ? 'dev' + Date.now() : '2026-08-11-production-1';
       document.write('<link rel="stylesheet" href="style.css?v=' + v + '">');
     })();
   </script>
@@ -91,6 +91,10 @@
     </a>
   </nav>
 
+  <!-- Background-music resume — keeps the song from index.html playing
+       through this page. Plain classic script (not a module), so it still
+       runs fine even opened straight off disk. -->
+  <script>document.write('<script src="../js/bg-music.js?v=' + window.__ASSET_V + '"><\/script>');</script>
   <script>document.write('<script src="main.js?v=' + window.__ASSET_V + '"><\/script>');</script>
 </body>
 

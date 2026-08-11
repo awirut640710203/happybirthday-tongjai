@@ -50,7 +50,7 @@
             // Bump this on every published visual release. A stable token is
             // deliberately cacheable; a new token makes every browser fetch
             // the matching CSS and JS for the current page.
-            var v = window.__ASSET_V = window.__DEV_HOST ? 'dev' + Date.now() : '2026-08-10-production-2';
+            var v = window.__ASSET_V = window.__DEV_HOST ? 'dev' + Date.now() : '2026-08-11-production-1';
             document.write(
                 '<link rel="stylesheet" href="css/style.css?v=' + v + '">' +
                 '<link rel="stylesheet" href="css/lock.css?v=' + v + '">' +
@@ -925,6 +925,7 @@
          never see it. Written into the parser, order and timing both hold. -->
     <script>
         document.write(
+            '<script src="js/bg-music.js?v=' + window.__ASSET_V + '"><\/script>' +
             '<script src="js/script.js?v=' + window.__ASSET_V + '"><\/script>' +
             '<script src="js/lock.js?v=' + window.__ASSET_V + '"><\/script>' +
             '<script src="js/gift-reveal.js?v=' + window.__ASSET_V + '"><\/script>');

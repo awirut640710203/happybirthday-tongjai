@@ -222,6 +222,12 @@
     function unlock() {
         busy = true;
         try { sessionStorage.setItem(STORAGE_KEY, '1'); } catch (e) { }
+        // Fires the music the instant the passcode is confirmed — including
+        // when this run through the 230ms auto-submit timer in addDigit(),
+        // not just a direct button/Enter press. Safe even then because the
+        // very first tap on the keypad already primed the audio element via
+        // BGMusic.arm() (see the keydown/pointerdown listeners below).
+        if (window.BGMusic) window.BGMusic.start();
 
         dotsWrap.classList.remove('wrong');
         dotsWrap.classList.add('correct');
@@ -571,5 +577,16 @@
         startBokeh();
         document.addEventListener('keydown', onKey);
         setTimeout(() => { if (ghostInput) ghostInput.focus({ preventScroll: true }); }, 600);
+
+        // Prime the background-music element on the very first tap/keypress
+        // anywhere on the keypad — a genuine user gesture, which is what
+        // unlocks audio-with-sound for the rest of this page in Safari. By
+        // the time the passcode is actually confirmed correct (possibly from
+        // inside a setTimeout, which is not itself a gesture) the element is
+        // already unlocked and BGMusic.start() just works.
+        if (window.BGMusic) {
+            document.addEventListener('pointerdown', window.BGMusic.arm, { capture: true, once: true });
+            document.addEventListener('keydown', window.BGMusic.arm, { capture: true, once: true });
+        }
     }
 })();
